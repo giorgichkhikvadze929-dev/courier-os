@@ -1,0 +1,331 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: connection URL lives in prisma.config.ts (see datasource block),
+  // not here. The schema declares only the provider.
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique  // also used as username for legacy accounts (kagon, acme, etc.)
+  password  String?           // nullable — Google-OAuth users sign in without a local password
+  role      String            // ADMIN | COMPANY | COURIER
+  phone     String?
+  active    Boolean  @default(true)
+  // Auth-provider tracking. "credentials" = email+password sign-up. "google" = Google OAuth.
+  // null for legacy seeded accounts (kagon, acme, peak, bob, charlie).
+  provider  String?
+  createdAt DateTime @default(now())
+
+  // For COMPANY users — which Company they belong to
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  // Reverse relations
+  assignedDeliveries  Delivery[]      @relation("CourierDeliveries")
+  pickupDeliveries    Delivery[]      @relation("PickupDeliveries")
+  importedBatches     ImportBatch[]
+  notifications       Notification[]
+  auditEntries        AuditLog[]
+  inventoryItems      InventoryItem[] @relation("InventoryCreator")
+}
+
+// ─── Companies (senders) ──────────────────────────────────────────────────────
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?  // contact name
+  phone     String?
+  email     String?
+  address   String?
+  active    Boolean  @default(true)
+
+  // Excel upload approval gate.
+  // Admin must set uploadEnabled = true before the company can submit imports.
+  uploadEnabled     Boolean   @default(false)
+  uploadRequestedAt DateTime?  // company sets this when requesting access; cleared on decision
+
+  createdAt DateTime @default(now())
+
+  users      User[]
+  deliveries Delivery[]
+  tariffs    Tariff[]
+  imports    ImportBatch[]
+  invoices   Invoice[]
+}
+
+// ─── Tariffs (rate per company × zone) ────────────────────────────────────────
+
+model Tariff {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  zone      String   // CAPITAL | REGION | MOUNTAIN
+  amount    Float    @default(0)
+  effective DateTime @default(now())
+  note      String?
+
+  @@unique([companyId, zone, effective])
+}
+
+// ─── Delivery ────────────────────────────────────────────────────────────────
+
+model Delivery {
+  id             String  @id @default(cuid())
+  trackingNumber String  @unique
+
+  // 8 PRD statuses
+  status String @default("RECEIVED")
+  // RECEIVED | IN_WAREHOUSE | ASSIGNED | IN_TRANSIT | DELIVERED | FAILED | REFUSED | RETURNED
+
+  priority String @default("NORMAL")
+  // LOW | NORMAL | HIGH | URGENT
+
+  // Customer
+  customerName  String
+  customerPhone String
+  customerEmail String?
+  dropoffAddress String
+
+  // Geographic location
+  zone       String?  // region code — one of the 12 Georgian regions
+  city       String?  // city / municipality name within the region
+  postalCode String?  // 4-digit Georgian postal code — required at import time
+  geoPlaceId String?  // optional link to the GeoPlace reference record
+
+  // Package metadata
+  packageType String?  // SMALL | MEDIUM | LARGE | FRAGILE | DOCUMENT
+  weightKg    Float?   // package weight in kilograms — required at import time, nullable to back-fill old rows
+  sizeCm      String?  // free-text dimensions in cm, e.g. "30x20x15"  — required at import time
+  codAmount   Float?
+  notes       String?
+  problemFlag String?  // free-text problem reason if any
+
+  // Sender
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  // Assignment — delivery courier (warehouse → customer)
+  courierId String?
+  courier   User?   @relation("CourierDeliveries", fields: [courierId], references: [id])
+
+  // Pickup courier (sender → warehouse). The Excel files we ingest carry a
+  // separate "აღმ. კურიერი" column for this person — they go to the company,
+  // collect the parcel, and drop it off at our warehouse. Different from the
+  // delivery courier who later takes it to the final recipient.
+  pickupCourierId   String?
+  pickupCourier     User?    @relation("PickupDeliveries", fields: [pickupCourierId], references: [id])
+  pickupAssignedAt  DateTime?
+  pickupCollectedAt DateTime?
+
+  // Verification (warehouse step)
+  verifiedAt   DateTime?
+  verifiedNote String?
+
+  // Proof of delivery
+  proofNote     String?
+  proofSignedBy String?
+
+  // Courier comments per status update
+  courierComment String?
+
+  // Lifecycle timestamps
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  failedAt    DateTime?
+  refusedAt   DateTime?
+  returnedAt  DateTime?
+
+  history DeliveryHistory[]
+  invoiceLineItems InvoiceLineItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([companyId])
+  @@index([courierId])
+  @@index([pickupCourierId])
+}
+
+model DeliveryHistory {
+  id         String   @id @default(cuid())
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status     String
+  note       String?
+  actorId    String?  // user id who triggered the change
+  createdAt  DateTime @default(now())
+}
+
+// ─── Import Batches (Excel uploads from companies) ────────────────────────────
+
+model ImportBatch {
+  id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
+  uploadedBy  String?
+  uploader    User?    @relation(fields: [uploadedBy], references: [id])
+  filename    String?
+  totalRows   Int      @default(0)
+  importedRows Int     @default(0)
+  errorRows   Int      @default(0)
+  duplicateRows Int    @default(0)
+  errorsJson  String?  // JSON array of error rows for review
+  status      String   @default("DRAFT")  // DRAFT | COMMITTED | REJECTED
+  createdAt   DateTime @default(now())
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String   // CREATE | UPDATE | DELETE | STATUS_CHANGE | TARIFF_CHANGE | LOGIN | etc.
+  entity    String   // 'Delivery' | 'Company' | 'Tariff' | 'User' …
+  entityId  String?
+  before    String?  // JSON snapshot
+  after     String?  // JSON snapshot
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+}
+
+// ─── Inventory ────────────────────────────────────────────────────────────────
+// Lightweight stock tracker for the warehouse.
+// Every change goes through audited server actions, so the per-item History
+// panel can be reconstructed from AuditLog entries with entity='Inventory'.
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String?  @unique
+  quantity    Int      @default(0)
+  location    String?  // e.g. shelf / row / warehouse zone
+  notes       String?
+
+  createdById String?
+  createdBy   User?    @relation("InventoryCreator", fields: [createdById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  type      String   @default("INFO") // INFO | SUCCESS | WARNING | ERROR
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
+
+// ─── Invoices ─────────────────────────────────────────────────────────────────
+// An Invoice is the legal/financial document billing a company for delivered
+// parcels. It is generated against a confirmed set of `Delivery` rows (the
+// "orders" in this domain) for a given billing period. Invoices are immutable
+// once issued — status progresses DRAFT → ISSUED → PAID (or CANCELLED).
+//
+// Total = subtotal + tax. Line items are usually one-per-delivery so an admin
+// can audit which parcels are on this bill.
+
+model Invoice {
+  id            String   @id @default(cuid())
+  // Human-readable, sequential identifier surfaced to the company (e.g. INV-2026-0001).
+  invoiceNumber String   @unique
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id])
+
+  // Billing window (inclusive). Used in the UI to label the invoice
+  // "for May 2026" or "for week 21". Either bound may be null for ad-hoc bills.
+  periodStart   DateTime?
+  periodEnd     DateTime?
+
+  // DRAFT — admin is editing, not yet sent
+  // ISSUED — emailed/given to the company, awaiting payment
+  // PAID — fully paid
+  // OVERDUE — past dueAt without payment (status set via cron / on view)
+  // CANCELLED — voided
+  status        String   @default("DRAFT")
+
+  subtotal      Float    @default(0)
+  taxRate       Float    @default(0)    // e.g. 0.18 for 18% VAT
+  tax           Float    @default(0)    // computed: subtotal * taxRate
+  total         Float    @default(0)    // computed: subtotal + tax
+
+  issuedAt      DateTime?
+  dueAt         DateTime?
+  paidAt        DateTime?
+  cancelledAt   DateTime?
+  notes         String?
+
+  items         InvoiceLineItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Each line is typically one delivered parcel, but the field is nullable so
+  // an aggregate "Other charges" line can also be supported.
+  deliveryId  String?
+  delivery    Delivery? @relation(fields: [deliveryId], references: [id])
+
+  description String   // e.g. "Delivery TRK-XXXX — Tbilisi / Small"
+  quantity    Int      @default(1)
+  unitPrice   Float
+  amount      Float    // quantity * unitPrice, stored to avoid float drift
+
+  createdAt   DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([deliveryId])
+}
+
+// ─── Georgian geography (region → municipality → place) ───────────────────────
+// Reference table for the Georgian administrative hierarchy. Used to power
+// cascading region → city pickers and postal-code autocomplete in the importer
+// and filters. `regionCode` is one of the 12 ZONES values.
+//
+// This table is also a bulk-import target: an official village-level CSV can be
+// loaded into it later without touching application code.
+
+model GeoPlace {
+  id           String  @id @default(cuid())
+  name         String                       // English name
+  nameKa       String?                      // Georgian name
+  type         String  @default("CITY")     // CITY | TOWN | VILLAGE | DISTRICT | MUNICIPALITY
+  regionCode   String                       // one of the 12 region codes (zone)
+  municipality String?                      // municipality this place sits in
+  postalCode   String                       // 4-digit Georgian postal code
+
+  createdAt    DateTime @default(now())
+
+  @@index([regionCode])
+  @@index([postalCode])
+  @@index([name])
+}

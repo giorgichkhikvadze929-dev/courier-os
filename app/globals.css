@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Light mode (default) ──────────────────────────────────── */
+:root {
+  --color-app:           #F8FAFC;
+  --color-app-elev:      #FFFFFF;
+  --color-card:          #FFFFFF;
+  --color-card-hover:    #F1F5F9;
+  --color-border:        #E2E8F0;
+  --color-border-strong: #CBD5E1;
+
+  --color-text:          #1F2937;
+  --color-text-strong:   #111827;
+  --color-text-muted:    #4B5563;
+  --color-text-faint:    #94A3B8;
+
+  --color-primary:       #3B82F6;
+  --color-primary-hover: #2563EB;
+  --color-primary-soft:  #DBEAFE;
+
+  --color-success:       #16A34A;
+  --color-warning:       #EA580C;
+  --color-danger:        #DC2626;
+
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+
+  color-scheme: light;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── Dark mode override ────────────────────────────────────── */
+html.dark {
+  --color-app:           #0B1220;
+  --color-app-elev:      #0F172A;
+  --color-card:          #111827;
+  --color-card-hover:    #161F35;
+  --color-border:        #1F2937;
+  --color-border-strong: #374151;
+
+  --color-text:          #E5E7EB;
+  --color-text-strong:   #F3F4F6;
+  --color-text-muted:    #9CA3AF;
+  --color-text-faint:    #6B7280;
+
+  --color-primary:       #3B82F6;
+  --color-primary-hover: #60A5FA;
+  --color-primary-soft:  #1E3A8A;
+
+  --color-success:       #22C55E;
+  --color-warning:       #F97316;
+  --color-danger:        #EF4444;
+
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 3px 0 rgb(0 0 0 / 0.5);
+  --shadow-card-hover: 0 6px 12px -2px rgb(0 0 0 / 0.5), 0 4px 8px -4px rgb(0 0 0 / 0.4);
+
+  color-scheme: dark;
 }
+
+html, body {
+  background-color: var(--color-app);
+  color: var(--color-text);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 8px;
+  border: 2px solid var(--color-app);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
+
+::selection { background: color-mix(in srgb, var(--color-primary) 30%, transparent); color: var(--color-text-strong); }
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ─── Collapsible sidebar ────────────────────────────────────
+   Toggled by clicking the CourierOS brand block in Shell.
+   Class lives on <html> so SSR layout doesn't flash.
+   Width: 240px (default) ↔ 64px (icons only).
+   ──────────────────────────────────────────────────────────── */
+[data-sidebar] { transition: width 180ms ease; }
+[data-sidebar-spacer] { transition: padding-left 180ms ease; }
+
+html.sidebar-collapsed [data-sidebar] { width: 64px; }
+@media (min-width: 1024px) {
+  html.sidebar-collapsed [data-sidebar-spacer] { padding-left: 64px; }
+}
+
+/* Hide all explicit "label" sub-elements when collapsed */
+html.sidebar-collapsed [data-sidebar-label] { display: none; }
+
+/* Center icons inside nav items when collapsed */
+html.sidebar-collapsed [data-sidebar-item] { justify-content: center; padding-left: 0; padding-right: 0; }
+
+/* Hide the user info block + sign-out copy; keep avatar visible */
+html.sidebar-collapsed [data-sidebar-user-meta] { display: none; }
+html.sidebar-collapsed [data-sidebar-signout] { display: none; }
+html.sidebar-collapsed [data-sidebar-user] { justify-content: center; padding-left: 0; padding-right: 0; }
