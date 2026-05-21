@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import { StatusBadge, PriorityBadge, ZONE_LABEL } from '@/app/components/StatusBadge'
 import { updateDeliveryStatus, returnToWarehouse } from '../../actions'
+import { money } from '@/lib/format'
 import { getT } from '@/lib/i18n-server'
 
 export default async function CourierDeliveryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -86,7 +87,7 @@ export default async function CourierDeliveryPage({ params }: { params: Promise<
           {delivery.codAmount != null && (
             <div className="bg-yellow-500/10 rounded-xl p-3">
               <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide mb-1">{t('dd_cod')}</p>
-              <p className="text-lg font-bold text-[var(--color-text-strong)]">${delivery.codAmount.toFixed(2)}</p>
+              <p className="text-lg font-bold text-[var(--color-text-strong)]">{money(delivery.codAmount)}</p>
             </div>
           )}
           {delivery.notes && (

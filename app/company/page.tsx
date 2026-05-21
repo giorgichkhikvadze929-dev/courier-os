@@ -7,6 +7,7 @@ import { StatusBadge, ZONES } from '@/app/components/StatusBadge'
 import { tariffMatrix } from '@/lib/tariff'
 import { getT } from '@/lib/i18n-server'
 import { tZone } from '@/lib/i18n'
+import { money } from '@/lib/format'
 
 export default async function CompanyPage() {
   const session = await auth()
@@ -107,7 +108,7 @@ export default async function CompanyPage() {
               {ZONES.map((z) => (
                 <div key={z} className="flex justify-between">
                   <dt className="text-[var(--color-text-muted)]">{tZone(z, lang)}</dt>
-                  <dd className="font-semibold text-[var(--color-text-strong)]">{tariffs[z] != null ? `$${tariffs[z].toFixed(2)}` : '—'}</dd>
+                  <dd className="font-semibold text-[var(--color-text-strong)]">{money(tariffs[z])}</dd>
                 </div>
               ))}
             </dl>

@@ -9,6 +9,7 @@ import { StatusBadge, PriorityBadge } from '@/app/components/StatusBadge'
 import { getT } from '@/lib/i18n-server'
 import { tZone } from '@/lib/i18n'
 import { updateDeliveryStatus, returnToWarehouse } from './actions'
+import { money } from '@/lib/format'
 
 export default async function CourierPage() {
   const session = await auth()
@@ -61,7 +62,7 @@ export default async function CourierPage() {
         </div>
         <div className="bg-yellow-500/10 rounded-2xl border border-yellow-500/30 px-5 py-4">
           <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">{t('courier_cash_to_collect')}</p>
-          <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300 mt-0.5 tabular-nums">${totalCash.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300 mt-0.5 tabular-nums">{money(totalCash)}</p>
         </div>
         <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
           <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('label_delivered_today')}</p>
@@ -104,7 +105,7 @@ export default async function CourierPage() {
                     {d.codAmount != null && d.codAmount > 0 && (
                       <div className="text-right flex-shrink-0">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-yellow-700/70 dark:text-yellow-400/70">COD</p>
-                        <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">${d.codAmount.toFixed(2)}</p>
+                        <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">{money(d.codAmount)}</p>
                       </div>
                     )}
                   </div>

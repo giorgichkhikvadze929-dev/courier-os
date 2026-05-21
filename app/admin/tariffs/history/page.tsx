@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import { getT } from '@/lib/i18n-server'
 import { tZone } from '@/lib/i18n'
+import { money } from '@/lib/format'
 
 /**
  * Per-tariff change history (PRD §4.1 — "tariff change history & log").
@@ -72,14 +73,14 @@ export default async function TariffHistoryPage({
                       <span className="text-xs text-[var(--color-text-muted)]">{fmt(row.effective)}</span>
                       {i === 0 && <span className="ml-2 text-[10px] font-semibold text-green-600 dark:text-green-400 uppercase">{tr('tariff_current')}</span>}
                     </td>
-                    <td className="px-6 py-3 text-right font-mono text-[var(--color-text-strong)]">${row.amount.toFixed(2)}</td>
+                    <td className="px-6 py-3 text-right font-mono text-[var(--color-text-strong)]">{money(row.amount)}</td>
                     <td className="px-6 py-3 text-right font-mono text-xs">
                       {diff === null
                         ? <span className="text-[var(--color-text-faint)]">—</span>
                         : diff > 0
-                          ? <span className="text-red-600 dark:text-red-400">+${diff.toFixed(2)}</span>
+                          ? <span className="text-red-600 dark:text-red-400">+{money(diff)}</span>
                           : diff < 0
-                            ? <span className="text-green-600 dark:text-green-400">−${Math.abs(diff).toFixed(2)}</span>
+                            ? <span className="text-green-600 dark:text-green-400">−{money(Math.abs(diff))}</span>
                             : <span className="text-[var(--color-text-faint)]">$0.00</span>}
                     </td>
                     <td className="px-6 py-3 text-sm text-[var(--color-text)]">{row.note ?? <span className="text-[var(--color-text-faint)]">—</span>}</td>

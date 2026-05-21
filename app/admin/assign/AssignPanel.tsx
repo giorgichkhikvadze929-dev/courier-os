@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { applyAssignmentPlan } from './actions'
 import { tZone, tPriority, t as translate, type Lang, type DictKey } from '@/lib/i18n'
+import { money } from '@/lib/format'
 
 export type ZoneBucket = {
   zone: string | null
@@ -172,7 +173,7 @@ function ZoneBucketCard({
             {includedParcels.length} {t('parcel_word_plural')}
             {includedCod > 0 && (
               <span className="ml-1 text-yellow-700 dark:text-yellow-400 font-semibold tabular-nums">
-                · ${includedCod.toFixed(2)} COD
+                · {money(includedCod)} COD
               </span>
             )}
             {excluded.size > 0 && ` · ${excluded.size} ${t('assign_excluded')}`}
@@ -230,7 +231,7 @@ function ZoneBucketCard({
                 <span className="text-xs text-[var(--color-text-muted)] flex-1 truncate hidden sm:block">{p.dropoffAddress}</span>
                 {p.codAmount != null && p.codAmount > 0 && (
                   <span className="text-xs font-bold text-yellow-700 dark:text-yellow-300 tabular-nums whitespace-nowrap">
-                    ${p.codAmount.toFixed(2)}
+                    {money(p.codAmount)}
                   </span>
                 )}
                 {p.priority !== 'NORMAL' && (

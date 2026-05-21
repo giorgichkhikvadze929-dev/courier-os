@@ -6,6 +6,7 @@ import Shell from '@/app/components/Shell'
 import { StatusBadge, PriorityBadge, ZONE_LABEL } from '@/app/components/StatusBadge'
 import { resolveTariff } from '@/lib/tariff'
 import { assignSingle, assignPickupCourier } from '../actions'
+import { money } from '@/lib/format'
 import { getT } from '@/lib/i18n-server'
 
 export default async function AdminDeliveryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -109,13 +110,13 @@ export default async function AdminDeliveryDetailPage({ params }: { params: Prom
           {delivery.codAmount != null && (
             <div>
               <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">COD</p>
-              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">${delivery.codAmount.toFixed(2)}</p>
+              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">{money(delivery.codAmount)}</p>
             </div>
           )}
           {tariff && (
             <div>
               <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('dd_tariff')}</p>
-              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">${tariff.amount.toFixed(2)} <span className="text-xs text-[var(--color-text-faint)]">({delivery.zone ? ZONE_LABEL[delivery.zone] : ''})</span></p>
+              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">{money(tariff.amount)} <span className="text-xs text-[var(--color-text-faint)]">({delivery.zone ? ZONE_LABEL[delivery.zone] : ''})</span></p>
             </div>
           )}
           {delivery.packageType && (

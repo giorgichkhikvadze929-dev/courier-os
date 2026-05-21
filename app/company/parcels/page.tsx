@@ -10,6 +10,7 @@ import FilterPanel from '@/app/components/FilterPanel'
 import Pagination from '@/app/components/Pagination'
 import AutoRefresh from '@/app/components/AutoRefresh'
 import { getActiveSession } from '@/lib/impersonation'
+import { money } from '@/lib/format'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -154,7 +155,7 @@ export default async function CompanyParcelsPage({
                   {d.codAmount != null && d.codAmount > 0 && (
                     <div className="text-right flex-shrink-0">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-yellow-700/70 dark:text-yellow-400/70">COD</p>
-                      <p className="text-base font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">${d.codAmount.toFixed(2)}</p>
+                      <p className="text-base font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">{money(d.codAmount)}</p>
                     </div>
                   )}
                 </div>
@@ -208,7 +209,7 @@ export default async function CompanyParcelsPage({
                     <td className="px-6 py-3 text-xs text-[var(--color-text-muted)]">{tZone(d.zone, lang)}</td>
                     <td className="px-6 py-3 text-right tabular-nums">
                       {d.codAmount != null && d.codAmount > 0
-                        ? <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">${d.codAmount.toFixed(2)}</span>
+                        ? <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">{money(d.codAmount)}</span>
                         : <span className="text-xs text-[var(--color-text-faint)]">—</span>}
                     </td>
                     <td className="px-6 py-3 text-[var(--color-text-muted)] hidden lg:table-cell">{d.courier?.name ?? <span className="text-yellow-600 dark:text-yellow-400">{t('label_unassigned')}</span>}</td>

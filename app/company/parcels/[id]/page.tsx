@@ -6,6 +6,7 @@ import Shell from '@/app/components/Shell'
 import { StatusBadge, PriorityBadge, ZONE_LABEL } from '@/app/components/StatusBadge'
 import { resolveTariff } from '@/lib/tariff'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 export default async function CompanyParcelDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -65,13 +66,13 @@ export default async function CompanyParcelDetailPage({ params }: { params: Prom
           {delivery.codAmount != null && (
             <div>
               <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('dd_cod_amount')}</p>
-              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">${delivery.codAmount.toFixed(2)}</p>
+              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">{money(delivery.codAmount)}</p>
             </div>
           )}
           {tariff && (
             <div>
               <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('dd_delivery_fee')}</p>
-              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">${tariff.amount.toFixed(2)}</p>
+              <p className="text-sm text-[var(--color-text-strong)] mt-0.5">{money(tariff.amount)}</p>
             </div>
           )}
           {delivery.packageType && (

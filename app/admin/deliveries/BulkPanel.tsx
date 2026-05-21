@@ -6,6 +6,7 @@ import { bulkAssignToCourier, type BulkResult } from './actions'
 import { StatusBadge, PriorityBadge } from '@/app/components/StatusBadge'
 import ColumnHeader, { type ColumnFilter } from '@/app/components/ColumnHeader'
 import { tZone, tPackage, t as translate, type Lang, type DictKey } from '@/lib/i18n'
+import { money } from '@/lib/format'
 
 type Delivery = {
   id: string
@@ -186,7 +187,7 @@ export default function BulkPanel({
                     {d.codAmount != null && d.codAmount > 0 && (
                       <div className="text-right flex-shrink-0">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-yellow-700/70 dark:text-yellow-400/70">COD</p>
-                        <p className="text-base font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">${d.codAmount.toFixed(2)}</p>
+                        <p className="text-base font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">{money(d.codAmount)}</p>
                       </div>
                     )}
                   </div>
@@ -292,7 +293,7 @@ export default function BulkPanel({
                       <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs hidden lg:table-cell">{tPackage(d.packageType, lang)}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {d.codAmount != null && d.codAmount > 0
-                          ? <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">${d.codAmount.toFixed(2)}</span>
+                          ? <span className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">{money(d.codAmount)}</span>
                           : <span className="text-xs text-[var(--color-text-faint)]">—</span>}
                       </td>
                       <td className="px-4 py-3 text-[var(--color-text-muted)]">{d.courier?.name ?? <span className="text-yellow-600 dark:text-yellow-400">{t('dd_courier_unassigned')}</span>}</td>

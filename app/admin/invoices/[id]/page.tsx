@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import InvoiceActions from './InvoiceActions'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT:     'bg-slate-500/15 text-slate-700 dark:text-slate-300',
@@ -68,9 +69,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full mt-1 ${STATUS_BADGE[displayStatus] ?? STATUS_BADGE.DRAFT}`}>
             {displayStatus}
           </span>
-          <p className="mt-3 text-3xl font-bold text-[var(--color-text-strong)] tabular-nums">{inv.total.toFixed(2)}</p>
+          <p className="mt-3 text-3xl font-bold text-[var(--color-text-strong)] tabular-nums">{money(inv.total)}</p>
           <p className="text-xs text-[var(--color-text-muted)]">
-            {t('inv_subtotal')}: {inv.subtotal.toFixed(2)} · {t('inv_tax')} ({(inv.taxRate * 100).toFixed(0)}%): {inv.tax.toFixed(2)}
+            {t('inv_subtotal')}: {money(inv.subtotal)} · {t('inv_tax')} ({(inv.taxRate * 100).toFixed(0)}%): {money(inv.tax)}
           </p>
         </div>
       </div>
@@ -106,8 +107,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 </td>
                 <td className="px-4 py-2 text-xs text-[var(--color-text-muted)] hidden md:table-cell">{item.delivery?.customerName ?? '—'}</td>
                 <td className="px-4 py-2 text-right tabular-nums">{item.quantity}</td>
-                <td className="px-4 py-2 text-right tabular-nums">{item.unitPrice.toFixed(2)}</td>
-                <td className="px-4 py-2 text-right font-semibold tabular-nums">{item.amount.toFixed(2)}</td>
+                <td className="px-4 py-2 text-right tabular-nums">{money(item.unitPrice)}</td>
+                <td className="px-4 py-2 text-right font-semibold tabular-nums">{money(item.amount)}</td>
               </tr>
             ))}
           </tbody>
@@ -115,17 +116,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
             <tr>
               <td colSpan={3} />
               <td className="px-4 py-2 text-right text-xs uppercase tracking-wider font-semibold text-[var(--color-text-muted)]">{t('inv_subtotal')}</td>
-              <td className="px-4 py-2 text-right tabular-nums font-semibold">{inv.subtotal.toFixed(2)}</td>
+              <td className="px-4 py-2 text-right tabular-nums font-semibold">{money(inv.subtotal)}</td>
             </tr>
             <tr>
               <td colSpan={3} />
               <td className="px-4 py-2 text-right text-xs uppercase tracking-wider font-semibold text-[var(--color-text-muted)]">{t('inv_tax')} ({(inv.taxRate * 100).toFixed(0)}%)</td>
-              <td className="px-4 py-2 text-right tabular-nums">{inv.tax.toFixed(2)}</td>
+              <td className="px-4 py-2 text-right tabular-nums">{money(inv.tax)}</td>
             </tr>
             <tr>
               <td colSpan={3} />
               <td className="px-4 py-2 text-right text-sm font-bold uppercase tracking-wider text-[var(--color-text-strong)]">{t('inv_total')}</td>
-              <td className="px-4 py-2 text-right text-lg tabular-nums font-bold text-[var(--color-text-strong)]">{inv.total.toFixed(2)}</td>
+              <td className="px-4 py-2 text-right text-lg tabular-nums font-bold text-[var(--color-text-strong)]">{money(inv.total)}</td>
             </tr>
           </tfoot>
         </table>

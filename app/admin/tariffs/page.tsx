@@ -7,6 +7,7 @@ import { ZONES } from '@/app/components/StatusBadge'
 import { upsertTariff } from './actions'
 import { getT } from '@/lib/i18n-server'
 import { tZone } from '@/lib/i18n'
+import { money } from '@/lib/format'
 
 export default async function TariffsPage({
   searchParams,
@@ -102,7 +103,7 @@ export default async function TariffsPage({
                               className="text-[var(--color-text-strong)] hover:text-[var(--color-primary)] hover:underline"
                               title={tr('tariff_view_history')}
                             >
-                              ${row.amount.toFixed(2)}
+                              {money(row.amount)}
                             </Link>
                           ) : <span className="text-[var(--color-text-faint)]">—</span>}
                         </td>

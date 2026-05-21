@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import Pagination from '@/app/components/Pagination'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 const DEFAULT_PAGE_SIZE = 50
 
@@ -66,7 +67,7 @@ export default async function CompanyInvoicesPage({
     <Shell currentPath="/company/invoices" title={t('inv_title')} subtitle={`${total.toLocaleString()} ${t('inv_subtitle')}`}>
       <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl px-4 py-3 mb-4">
         <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
-          {t('inv_stat_outstanding')}: {(sumOpen._sum.total ?? 0).toFixed(2)}
+          {t('inv_stat_outstanding')}: {money(sumOpen._sum.total ?? 0)}
         </p>
       </div>
 
@@ -97,7 +98,7 @@ export default async function CompanyInvoicesPage({
                       {fmtDate(inv.periodStart)} → {fmtDate(inv.periodEnd)}
                     </td>
                     <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{inv._count.items}</td>
-                    <td className="px-4 py-3 text-right text-[var(--color-text-strong)] font-semibold tabular-nums">{inv.total.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-[var(--color-text-strong)] font-semibold tabular-nums">{money(inv.total)}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_BADGE[displayStatus] ?? STATUS_BADGE.DRAFT}`}>
                         {displayStatus}

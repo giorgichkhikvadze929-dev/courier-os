@@ -6,6 +6,7 @@ import Shell from '@/app/components/Shell'
 import Pagination from '@/app/components/Pagination'
 import GenerateInvoicePanel from './GenerateInvoicePanel'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 const DEFAULT_PAGE_SIZE = 50
 
@@ -68,8 +69,8 @@ export default async function InvoicesPage({
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         <StatTile label={t('inv_stat_total')}     value={total.toLocaleString()} tone="neutral" />
-        <StatTile label={t('inv_stat_outstanding')} value={(sumOpen._sum.total ?? 0).toFixed(2)} tone="warning" />
-        <StatTile label={t('inv_stat_paid')}        value={(sumPaid._sum.total ?? 0).toFixed(2)} tone="success" />
+        <StatTile label={t('inv_stat_outstanding')} value={money(sumOpen._sum.total ?? 0)} tone="warning" />
+        <StatTile label={t('inv_stat_paid')}        value={money(sumPaid._sum.total ?? 0)} tone="success" />
       </div>
 
       {/* Generate-invoice panel (client component for the form) */}
@@ -131,7 +132,7 @@ export default async function InvoicesPage({
                       {fmtDate(inv.periodStart)} → {fmtDate(inv.periodEnd)}
                     </td>
                     <td className="px-4 py-3 text-right text-[var(--color-text)] tabular-nums">{inv._count.items}</td>
-                    <td className="px-4 py-3 text-right text-[var(--color-text-strong)] font-semibold tabular-nums">{inv.total.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-[var(--color-text-strong)] font-semibold tabular-nums">{money(inv.total)}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_BADGE[displayStatus] ?? STATUS_BADGE.DRAFT}`}>
                         {displayStatus}
