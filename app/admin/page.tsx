@@ -147,10 +147,35 @@ export default async function AdminPage() {
           <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('recent_deliveries')}</h2>
           <Link href="/admin/deliveries" className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">{t('btn_view_all')} →</Link>
         </div>
-        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
-          {recentDeliveries.length === 0 ? (
+
+        {recentDeliveries.length === 0 ? (
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
             <p className="px-6 py-5 text-sm text-[var(--color-text-muted)]">{t('no_deliveries')}</p>
-          ) : (
+          </div>
+        ) : (
+          <>
+            {/* Mobile/tablet cards — no truncation, every row fully visible */}
+            <div className="lg:hidden flex flex-col gap-2">
+              {recentDeliveries.map((d) => (
+                <Link key={d.id} href={`/admin/deliveries/${d.id}`} className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono text-xs text-[var(--color-primary)] font-semibold truncate">{d.trackingNumber}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-strong)] mt-0.5 truncate">{d.customerName}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-1 truncate">
+                        {d.company?.name ?? '—'}{d.courier?.name ? ` · ${d.courier.name}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <StatusBadge status={d.status} lang={lang} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden lg:block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
@@ -177,8 +202,9 @@ export default async function AdminPage() {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </Shell>
   )
