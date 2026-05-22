@@ -81,7 +81,7 @@ export default async function TariffHistoryPage({
                           ? <span className="text-red-600 dark:text-red-400">+{money(diff)}</span>
                           : diff < 0
                             ? <span className="text-green-600 dark:text-green-400">−{money(Math.abs(diff))}</span>
-                            : <span className="text-[var(--color-text-faint)]">$0.00</span>}
+                            : <span className="text-[var(--color-text-faint)]">0.00 ₾</span>}
                     </td>
                     <td className="px-6 py-3 text-sm text-[var(--color-text)]">{row.note ?? <span className="text-[var(--color-text-faint)]">—</span>}</td>
                   </tr>

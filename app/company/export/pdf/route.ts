@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       d.status.replace(/_/g, ' '),
       d.zone ? (ZONE_LABEL[d.zone] ?? d.zone) : '-',
       d.courier?.name ?? '-',
-      d.codAmount != null ? '$' + d.codAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '',
+      d.codAmount != null ? d.codAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' GEL' : '',
       new Date(d.createdAt).toLocaleDateString(),
       d.dropoffAddress,
     ])

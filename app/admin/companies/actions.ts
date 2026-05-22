@@ -33,6 +33,13 @@ export async function updateCompany(id: string, formData: FormData): Promise<voi
   const session = await requireAdmin()
   const actorId = (session.user as { id?: string }).id ?? null
   const before = await prisma.company.findUnique({ where: { id } })
+  const cycleRaw = (formData.get('billingCycle') as string | null) ?? 'MONTHLY'
+  const billingCycle = ['MONTHLY', 'WEEKLY', 'OFF'].includes(cycleRaw) ? cycleRaw : 'MONTHLY'
+  const anchorRaw = Number(formData.get('billingAnchorDay'))
+  // MONTHLY: 1-28 (avoid month-end edge cases). WEEKLY: 0-6.
+  const billingAnchorDay = Number.isFinite(anchorRaw)
+    ? (billingCycle === 'WEEKLY' ? Math.max(0, Math.min(6, anchorRaw)) : Math.max(1, Math.min(28, anchorRaw)))
+    : 1
   const data = {
     name:    (formData.get('name') as string).trim(),
     contact: (formData.get('contact') as string | null)?.trim() || null,
@@ -40,6 +47,8 @@ export async function updateCompany(id: string, formData: FormData): Promise<voi
     email:   (formData.get('email')   as string | null)?.trim() || null,
     address: (formData.get('address') as string | null)?.trim() || null,
     active:  formData.get('active') === 'true',
+    billingCycle,
+    billingAnchorDay,
   }
   const after = await prisma.company.update({ where: { id }, data })
   await audit({ actorId, action: 'UPDATE', entity: 'Company', entityId: id, before, after })

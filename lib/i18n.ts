@@ -632,6 +632,19 @@ const DICT = {
   company_deactivate_hint:  { ge: 'დეაქტივირებულ კომპანიას ვერ მიენიჭება ახალი ამანათები.', en: 'Deactivated companies can no longer have new deliveries assigned.' },
   company_deactivate_btn:   { ge: 'დეაქტივაცია',                    en: 'Deactivate' },
 
+  // ─── Billing cycle (auto-invoice generator) ─────────────────────────
+  company_billing_title:        { ge: 'ინვოისების ავტო-გენერაცია',                 en: 'Automatic invoicing' },
+  company_billing_hint:         { ge: 'ინვოისი გენერირდება შერჩეული პერიოდის ბოლოს.', en: 'An invoice is generated at the end of each period.' },
+  company_billing_cycle:        { ge: 'პერიოდი',                                   en: 'Cycle' },
+  company_billing_cycle_monthly:{ ge: 'თვიური',                                    en: 'Monthly' },
+  company_billing_cycle_weekly: { ge: 'ყოველკვირეული',                              en: 'Weekly' },
+  company_billing_cycle_off:    { ge: 'გამორთული',                                  en: 'Off (manual only)' },
+  company_billing_anchor:       { ge: 'გენერაციის დღე',                            en: 'Generation day' },
+  company_billing_anchor_month: { ge: 'თვის რომელ რიცხვში (1–28)',                  en: 'Day of month (1–28)' },
+  company_billing_anchor_week:  { ge: 'კვირის დღე (0=კვ, 6=შაბ)',                  en: 'Weekday (0=Sun, 6=Sat)' },
+  company_billing_last_auto:    { ge: 'ბოლო ავტო-გენერაცია',                       en: 'Last auto-issue' },
+  company_billing_never:        { ge: 'არასდროს',                                  en: 'Never' },
+
   // ─── Delivery detail page (admin + courier) ────────────────────────
   dd_dropoff:               { ge: 'მისამართი',                     en: 'Dropoff' },
   dd_zone:                  { ge: 'ზონა:',                         en: 'Zone:' },

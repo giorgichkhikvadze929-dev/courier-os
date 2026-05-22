@@ -44,8 +44,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const created = new Date(d.createdAt).toLocaleDateString('ka-GE')
   const codDisplay = d.codAmount != null
-    ? '$' + d.codAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : '$0.00'
+    ? d.codAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₾'
+    : '0.00 ₾'
   const codBlock = (d.codAmount != null && d.codAmount > 0)
     ? `<hr><h2>გადახდა მიწოდებისას · Cash on Delivery</h2><div class="cod">${codDisplay}</div>`
     : ''

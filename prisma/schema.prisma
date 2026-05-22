@@ -52,6 +52,14 @@ model Company {
   uploadEnabled     Boolean   @default(false)
   uploadRequestedAt DateTime?  // company sets this when requesting access; cleared on decision
 
+  // Automatic invoice cycle (PRD §7 — "automatic invoice generation for companies").
+  // MONTHLY: invoice generated on `billingAnchorDay` of each month, covering the previous month.
+  // WEEKLY:  invoice generated every `billingAnchorDay` (0=Sun … 6=Sat), covering the previous 7 days.
+  // OFF:     no automatic generation; admin generates manually if needed.
+  billingCycle     String   @default("MONTHLY") // MONTHLY | WEEKLY | OFF
+  billingAnchorDay Int      @default(1)         // day-of-month (1-28) for MONTHLY, day-of-week (0-6) for WEEKLY
+  lastAutoInvoiceAt DateTime?                   // set whenever the cron successfully auto-issues; prevents duplicates
+
   createdAt DateTime @default(now())
 
   users      User[]
