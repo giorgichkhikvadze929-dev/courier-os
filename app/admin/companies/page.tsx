@@ -40,7 +40,65 @@ export default async function CompaniesPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
+        <>
+        {/* Mobile/tablet card list */}
+        <div className="lg:hidden flex flex-col gap-3">
+          {companies.map((c) => {
+            const uploadState: 'enabled' | 'pending' | 'disabled' = c.uploadEnabled
+              ? 'enabled'
+              : c.uploadRequestedAt ? 'pending' : 'disabled'
+            const stateClass = uploadState === 'enabled'
+              ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
+              : uploadState === 'pending'
+                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300'
+            const stateLabel = uploadState === 'enabled'
+              ? t('upload_status_enabled')
+              : uploadState === 'pending'
+                ? t('upload_status_pending')
+                : t('upload_status_disabled')
+            return (
+              <div key={c.id} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-[var(--color-text-strong)] truncate">{c.name}</p>
+                    {c.contact && <p className="text-xs text-[var(--color-text-muted)] truncate">{c.contact}</p>}
+                    {c.phone && <p className="text-xs text-[var(--color-text-muted)] font-mono">{c.phone}</p>}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-[var(--color-text-muted)]">{t('nav_deliveries')}</p>
+                    <p className="text-lg font-bold text-[var(--color-text-strong)]">{c._count.deliveries}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${stateClass}`}>{stateLabel}</span>
+                  <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${c.active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>{c.active ? t('label_active') : t('label_inactive')}</span>
+                </div>
+                <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex flex-wrap items-center gap-3">
+                  <Link href={`/admin/companies/${c.id}`} className="text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">{t('btn_edit')}</Link>
+                  {uploadState === 'pending' && (
+                    <form action={approveUpload.bind(null, c.id)}>
+                      <button className="text-sm font-semibold text-[var(--color-success)] hover:underline">{t('upload_btn_approve')}</button>
+                    </form>
+                  )}
+                  {uploadState === 'enabled' && (
+                    <form action={revokeUpload.bind(null, c.id)}>
+                      <button className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-danger)]">{t('upload_btn_revoke')}</button>
+                    </form>
+                  )}
+                  {uploadState === 'disabled' && (
+                    <form action={approveUpload.bind(null, c.id)}>
+                      <button className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-success)]">{t('upload_btn_approve')}</button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
@@ -118,6 +176,7 @@ export default async function CompaniesPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </Shell>
   )

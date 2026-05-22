@@ -189,8 +189,68 @@ export default async function UsersPage({
         )}
       </form>
 
-      {/* Table */}
-      <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
+      {/* Mobile/tablet card list — lg:hidden so it disappears at desktop (1024+) */}
+      <div className="lg:hidden flex flex-col gap-3">
+        {users.length === 0 ? (
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 text-center">
+            <p className="text-sm text-[var(--color-text-muted)]">{t('users_empty')}</p>
+          </div>
+        ) : (
+          users.map((u) => (
+            <div key={u.id} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4">
+              <div className="flex items-start gap-3">
+                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${avatarColor(u.id)} text-white text-sm font-bold flex-shrink-0`}>
+                  {initials(u.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-[var(--color-text-strong)] leading-tight truncate">{u.name}</p>
+                  <p className="font-mono text-[11px] text-[var(--color-text-faint)] truncate">{u.email}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${ROLE_BADGE[u.role] ?? 'bg-[var(--color-card-hover)] text-[var(--color-text-muted)]'}`}>
+                      {roleLabel(u.role)}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${u.active ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${u.active ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                      {u.active ? t('label_active') : t('label_inactive')}
+                    </span>
+                  </div>
+                  {(u.company?.name || u.phone) && (
+                    <div className="mt-2 text-xs text-[var(--color-text-muted)] space-y-0.5">
+                      {u.company?.name && <p>{t('label_company')}: <span className="text-[var(--color-text)]">{u.company.name}</span></p>}
+                      {u.phone && <p>{t('label_phone')}: <span className="text-[var(--color-text)] font-mono">{u.phone}</span></p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex flex-wrap items-center gap-3">
+                <Link href={`/admin/users/${u.id}`} className="text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
+                  {t('btn_edit')}
+                </Link>
+                {u.active && u.role !== 'ADMIN' && (
+                  <form action={startImpersonation.bind(null, u.id)}>
+                    <button type="submit" className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] font-medium">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      {t('users_preview_as')}
+                    </button>
+                  </form>
+                )}
+                <form action={setUserActive.bind(null, u.id)} className="ml-auto">
+                  <input type="hidden" name="active" value={u.active ? 'false' : 'true'} />
+                  <button type="submit" className={`text-xs font-semibold hover:underline ${u.active ? 'text-[var(--color-text-muted)] hover:text-[var(--color-danger)]' : 'text-[var(--color-success)] hover:text-green-600'}`}>
+                    {u.active ? t('label_deactivate') : t('label_activate')}
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table — shown only at lg+ where there's enough width for all 6 columns */}
+      <div className="hidden lg:block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
         {users.length === 0 ? (
           <p className="px-6 py-10 text-sm text-[var(--color-text-muted)] text-center">{t('users_empty')}</p>
         ) : (

@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import { updateUser, deactivateUser } from '../actions'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 const ROLES = ['ADMIN', 'COMPANY', 'COURIER']
 
@@ -20,6 +21,21 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
   ])
   if (!user) notFound()
 
+  // Courier-only money breakdown — currently carrying, delivered, returned/failed.
+  let courierMoney: { carrying: number; delivered: number; returned: number } | null = null
+  if (user.role === 'COURIER') {
+    const [carry, delivered, returned] = await Promise.all([
+      prisma.delivery.aggregate({ where: { courierId: id, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } }, _sum: { codAmount: true } }),
+      prisma.delivery.aggregate({ where: { courierId: id, status: 'DELIVERED' }, _sum: { codAmount: true } }),
+      prisma.delivery.aggregate({ where: { courierId: id, status: { in: ['FAILED', 'REFUSED', 'RETURNED'] } }, _sum: { codAmount: true } }),
+    ])
+    courierMoney = {
+      carrying:  carry._sum.codAmount     ?? 0,
+      delivered: delivered._sum.codAmount ?? 0,
+      returned:  returned._sum.codAmount  ?? 0,
+    }
+  }
+
   return (
     <Shell currentPath="/admin/users">
       <div className="flex items-center gap-3 mb-6">
@@ -27,6 +43,23 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
         <span className="text-[var(--color-text-faint)]">/</span>
         <h1 className="text-lg font-bold text-[var(--color-text-strong)]">{t('user_edit_prefix')} — {user.name}</h1>
       </div>
+
+      {courierMoney && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3 max-w-3xl">
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_courier_carrying')}</p>
+            <p className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400 font-mono">{money(courierMoney.carrying)}</p>
+          </div>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_courier_delivered')}</p>
+            <p className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400 font-mono">{money(courierMoney.delivered)}</p>
+          </div>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_courier_returned')}</p>
+            <p className="text-2xl font-bold mt-1 text-red-600 dark:text-red-400 font-mono">{money(courierMoney.returned)}</p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 max-w-xl">
         <form action={updateUser.bind(null, id)} className="flex flex-col gap-4">

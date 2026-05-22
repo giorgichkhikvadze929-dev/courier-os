@@ -6,6 +6,7 @@ import Shell from '@/app/components/Shell'
 import { StatusBadge } from '@/app/components/StatusBadge'
 import { IconUpload, IconPlus, IconSearch, IconChart, IconBuilding, IconCash } from '@/app/components/Icons'
 import { getT } from '@/lib/i18n-server'
+import { money } from '@/lib/format'
 
 export default async function AdminPage() {
   const session = await auth()
@@ -17,7 +18,9 @@ export default async function AdminPage() {
   const [
     deliveryCount, receivedCount, inWarehouseCount, inTransitCount,
     deliveredToday, problemCount, courierCount, companyCount,
-    recentDeliveries, workloadGroups, couriers,
+    recentDeliveries, workloadGroups, workloadMoneyGroups,
+    moneyInWarehouseAgg, moneyInTransitAgg, moneyDeliveredTodayAgg,
+    couriers,
   ] = await Promise.all([
     prisma.delivery.count(),
     prisma.delivery.count({ where: { status: 'RECEIVED' } }),
@@ -36,12 +39,27 @@ export default async function AdminPage() {
       where: { courierId: { not: null }, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } },
       _count: { _all: true },
     }),
+    prisma.delivery.groupBy({
+      by: ['courierId'],
+      where: { courierId: { not: null }, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } },
+      _sum: { codAmount: true },
+    }),
+    prisma.delivery.aggregate({ where: { status: 'IN_WAREHOUSE' }, _sum: { codAmount: true } }),
+    prisma.delivery.aggregate({ where: { status: { in: ['ASSIGNED', 'IN_TRANSIT'] } }, _sum: { codAmount: true } }),
+    prisma.delivery.aggregate({ where: { status: 'DELIVERED', deliveredAt: { gte: startOfDay } }, _sum: { codAmount: true } }),
     prisma.user.findMany({ where: { role: 'COURIER', active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
   ])
 
   const workloadByCourier: Record<string, number> = {}
   for (const g of workloadGroups) if (g.courierId) workloadByCourier[g.courierId] = g._count._all
   const maxLoad = Math.max(1, ...Object.values(workloadByCourier))
+
+  const moneyByCourier: Record<string, number> = {}
+  for (const g of workloadMoneyGroups) if (g.courierId) moneyByCourier[g.courierId] = g._sum.codAmount ?? 0
+
+  const moneyInWarehouse    = moneyInWarehouseAgg._sum.codAmount    ?? 0
+  const moneyInTransit      = moneyInTransitAgg._sum.codAmount      ?? 0
+  const moneyDeliveredToday = moneyDeliveredTodayAgg._sum.codAmount ?? 0
 
   const stats = [
     { label: t('label_total_deliveries'), value: deliveryCount,    color: 'text-[var(--color-text-strong)]' },
@@ -80,6 +98,24 @@ export default async function AdminPage() {
       </div>
 
       <div className="mt-6">
+        <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">{t('money_flow_title')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_in_warehouse')}</p>
+            <p className="text-2xl font-bold mt-1 text-cyan-600 dark:text-cyan-400 font-mono">{money(moneyInWarehouse)}</p>
+          </div>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_in_transit')}</p>
+            <p className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400 font-mono">{money(moneyInTransit)}</p>
+          </div>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
+            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_delivered_today')}</p>
+            <p className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400 font-mono">{money(moneyDeliveredToday)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6">
         <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">{t('workload_title')}</h2>
         <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5">
           {couriers.length === 0 ? (
@@ -88,6 +124,7 @@ export default async function AdminPage() {
             <ul className="flex flex-col gap-2">
               {couriers.map((c) => {
                 const load = workloadByCourier[c.id] ?? 0
+                const carried = moneyByCourier[c.id] ?? 0
                 const pct = Math.round((load / maxLoad) * 100)
                 return (
                   <li key={c.id} className="flex items-center gap-3">
@@ -96,6 +133,7 @@ export default async function AdminPage() {
                       <div className={`h-full rounded-full ${load === 0 ? 'bg-[var(--color-border-strong)]' : 'bg-[var(--color-primary)]'}`} style={{ width: `${load === 0 ? 0 : Math.max(8, pct)}%` }} />
                     </div>
                     <span className="text-xs font-mono text-[var(--color-text-muted)] w-10 text-right">{load}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-strong)] w-28 text-right hidden sm:inline">{carried > 0 ? money(carried) : ''}</span>
                   </li>
                 )
               })}

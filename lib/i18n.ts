@@ -574,6 +574,18 @@ const DICT = {
   workload_title:        { ge: 'კურიერების დატვირთვა (აქტიური ამანათები)', en: 'Courier Workload (active deliveries)' },
   workload_no_couriers:  { ge: 'აქტიური კურიერები არ არის.',   en: 'No active couriers.' },
 
+  // Money flow / value tracking
+  money_flow_title:         { ge: 'ფულის მოძრაობა',                en: 'Money flow' },
+  money_in_warehouse:       { ge: 'საწყობში ღირებულება',           en: 'Value in warehouse' },
+  money_in_transit:         { ge: 'კურიერებთან გასული',             en: 'Out with couriers' },
+  money_delivered_today:    { ge: 'დღეს ჩაბარდა',                  en: 'Delivered today' },
+  money_total_uploaded:     { ge: 'ჯამში ატვირთული',                en: 'Total uploaded value' },
+  money_uploaded_this_month:{ ge: 'ამ თვეში ატვირთული',              en: 'Uploaded this month' },
+  money_courier_carrying:   { ge: 'ახლა ეჭირა',                    en: 'Currently carrying' },
+  money_courier_delivered:  { ge: 'ჩააბარა',                       en: 'Delivered' },
+  money_courier_returned:   { ge: 'დააბრუნა / ვერ ჩააბარა',           en: 'Returned / Failed' },
+  money_carrying_now:       { ge: 'შენ ახლა გაქვს',                 en: 'You are carrying' },
+
   // Misc small strings
   no_deliveries:         { ge: 'ამანათები არ მოიძებნა.',       en: 'No deliveries found.' },
   no_parcels:            { ge: 'ამანათები არ მოიძებნა.',       en: 'No parcels found.' },

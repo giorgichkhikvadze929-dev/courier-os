@@ -15,12 +15,18 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
 
   const { t } = await getT()
   const { id } = await params
-  const [company, recentDeliveries, tariffs] = await Promise.all([
+  const startOfMonth = new Date(); startOfMonth.setUTCDate(1); startOfMonth.setUTCHours(0, 0, 0, 0)
+  const [company, recentDeliveries, tariffs, totalUploadedAgg, monthUploadedAgg] = await Promise.all([
     prisma.company.findUnique({ where: { id }, include: { _count: { select: { deliveries: true, users: true } } } }),
     prisma.delivery.findMany({ where: { companyId: id }, orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, trackingNumber: true, status: true, customerName: true } }),
     tariffMatrix(id),
+    prisma.delivery.aggregate({ where: { companyId: id }, _sum: { codAmount: true } }),
+    prisma.delivery.aggregate({ where: { companyId: id, createdAt: { gte: startOfMonth } }, _sum: { codAmount: true } }),
   ])
   if (!company) notFound()
+
+  const totalUploadedValue = totalUploadedAgg._sum.codAmount ?? 0
+  const monthUploadedValue = monthUploadedAgg._sum.codAmount ?? 0
 
   return (
     <Shell currentPath="/admin/companies">
@@ -109,6 +115,8 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
             <dl className="text-sm space-y-1.5">
               <div className="flex justify-between"><dt className="text-[var(--color-text-muted)]">{t('company_deliveries_count')}</dt><dd className="font-semibold text-[var(--color-text-strong)]">{company._count.deliveries}</dd></div>
               <div className="flex justify-between"><dt className="text-[var(--color-text-muted)]">{t('company_linked_users')}</dt><dd className="font-semibold text-[var(--color-text-strong)]">{company._count.users}</dd></div>
+              <div className="flex justify-between pt-2 border-t border-[var(--color-border)]"><dt className="text-[var(--color-text-muted)]">{t('money_total_uploaded')}</dt><dd className="font-semibold text-[var(--color-text-strong)] font-mono">{money(totalUploadedValue)}</dd></div>
+              <div className="flex justify-between"><dt className="text-[var(--color-text-muted)]">{t('money_uploaded_this_month')}</dt><dd className="font-semibold text-green-600 dark:text-green-400 font-mono">{money(monthUploadedValue)}</dd></div>
             </dl>
           </div>
 
