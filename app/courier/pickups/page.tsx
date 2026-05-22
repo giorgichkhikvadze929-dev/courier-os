@@ -61,7 +61,12 @@ export default async function PickupTasksPage() {
                     </a>
                   )}
                   {d.company?.phone && (
-                    <a href={`tel:${d.company.phone}`} className="block text-sm text-[var(--color-primary)] hover:underline mt-0.5">📞 {d.company.phone}</a>
+                    <a href={`tel:${d.company.phone}`} className="inline-flex items-center gap-1.5 text-sm text-[var(--color-primary)] hover:underline mt-0.5">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                      </svg>
+                      {d.company.phone}
+                    </a>
                   )}
                 </div>
                 {d.zone && (
@@ -78,9 +83,12 @@ export default async function PickupTasksPage() {
               <form action={markPickedUpAt.bind(null, d.id)}>
                 <button
                   type="submit"
-                  className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
                 >
-                  ✓ {t('pickup_mark_done')}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  {t('pickup_mark_done')}
                 </button>
               </form>
             </div>

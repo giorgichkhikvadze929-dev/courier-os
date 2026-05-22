@@ -133,9 +133,12 @@ export default async function CourierPage() {
                     <input type="hidden" name="status" value="IN_TRANSIT" />
                     <button
                       type="submit"
-                      className="w-full bg-[var(--color-warning)] hover:bg-orange-400 text-white font-semibold text-sm py-3 transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 bg-[var(--color-warning)] hover:bg-orange-400 text-white font-semibold text-sm py-3 transition-colors"
                     >
-                      🚚 {t('dd_pickup_transit')}
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                      </svg>
+                      {t('dd_pickup_transit')}
                     </button>
                   </form>
                 )}
@@ -145,27 +148,36 @@ export default async function CourierPage() {
                       <input type="hidden" name="status" value="DELIVERED" />
                       <button
                         type="submit"
-                        className="w-full bg-[var(--color-success)] hover:bg-green-500 text-white font-semibold text-sm py-3 transition-colors"
+                        className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-success)] hover:bg-green-500 text-white font-semibold text-sm py-3 transition-colors"
                       >
-                        ✓ {t('dd_mark_delivered')}
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                        {t('dd_mark_delivered')}
                       </button>
                     </form>
                     <form action={updateDeliveryStatus.bind(null, d.id)}>
                       <input type="hidden" name="status" value="FAILED" />
                       <button
                         type="submit"
-                        className="w-full bg-[var(--color-danger)] hover:bg-red-500 text-white font-semibold text-xs py-3 transition-colors"
+                        className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-danger)] hover:bg-red-500 text-white font-semibold text-xs py-3 transition-colors"
                       >
-                        ⚠ {t('label_failed')}
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" />
+                        </svg>
+                        {t('label_failed')}
                       </button>
                     </form>
                     <form action={updateDeliveryStatus.bind(null, d.id)}>
                       <input type="hidden" name="status" value="REFUSED" />
                       <button
                         type="submit"
-                        className="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs py-3 transition-colors"
+                        className="w-full inline-flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs py-3 transition-colors"
                       >
-                        ✕ {t('label_refused')}
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                        {t('label_refused')}
                       </button>
                     </form>
                   </div>
@@ -175,9 +187,13 @@ export default async function CourierPage() {
                     <input type="hidden" name="problemFlag" value={d.status === 'FAILED' ? 'Failed delivery' : 'Customer refused'} />
                     <button
                       type="submit"
-                      className="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-semibold text-sm py-3 transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold text-sm py-3 transition-colors"
                     >
-                      ↩ {t('dd_mark_returned')}
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M3 7v6h6" />
+                        <path d="M21 17a9 9 0 00-15-6.7L3 13" />
+                      </svg>
+                      {t('dd_mark_returned')}
                     </button>
                   </form>
                 )}

@@ -69,9 +69,12 @@ export default async function AdminDeliveryDetailPage({ params }: { params: Prom
             href={`/admin/deliveries/${id}/order-card`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[var(--color-primary-soft)] hover:bg-[var(--color-primary-soft)]/70 text-[var(--color-primary)] text-sm font-semibold px-4 py-2 rounded-lg border border-[var(--color-primary)]/30 transition-colors"
+            className="inline-flex items-center gap-2 bg-[var(--color-card-hover)] hover:bg-[var(--color-border)] text-[var(--color-text)] text-sm font-semibold px-4 py-2 rounded-lg border border-[var(--color-border)] transition-colors"
           >
-            🖨 {t('dd_print_order_card')}
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
+            </svg>
+            {t('dd_print_order_card')}
           </a>
           <Link
             href={`/admin/deliveries/${id}/edit`}

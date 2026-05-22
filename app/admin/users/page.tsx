@@ -16,13 +16,6 @@ const ROLE_BADGE: Record<string, string> = {
   COURIER: 'bg-green-100  text-green-700  dark:bg-green-500/20  dark:text-green-300',
 }
 
-/** Role icon — also doubles as a quick visual scan of the row. */
-const ROLE_ICON: Record<string, string> = {
-  ADMIN:   '👤',
-  COMPANY: '🏢',
-  COURIER: '🚚',
-}
-
 /** Avatar color derived from the user id so it's stable across renders. */
 const AVATAR_PALETTE = [
   'bg-rose-500',     'bg-orange-500',  'bg-amber-500',
@@ -227,8 +220,8 @@ export default async function UsersPage({
                     </div>
                   </td>
                   <td className="px-6 py-3">
-                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${ROLE_BADGE[u.role] ?? 'bg-[var(--color-card-hover)] text-[var(--color-text-muted)]'}`}>
-                      <span>{ROLE_ICON[u.role] ?? '·'}</span> {roleLabel(u.role)}
+                    <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full ${ROLE_BADGE[u.role] ?? 'bg-[var(--color-card-hover)] text-[var(--color-text-muted)]'}`}>
+                      {roleLabel(u.role)}
                     </span>
                   </td>
                   <td className="px-6 py-3 text-[var(--color-text-muted)] hidden md:table-cell">{u.company?.name ?? '—'}</td>
@@ -258,10 +251,14 @@ export default async function UsersPage({
                         <form action={startImpersonation.bind(null, u.id)}>
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]/70 border border-[var(--color-primary)]/30 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] font-medium transition-colors"
                             title={t('users_preview_hint')}
                           >
-                            👁 {t('users_preview_as')}
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            {t('users_preview_as')}
                           </button>
                         </form>
                       )}

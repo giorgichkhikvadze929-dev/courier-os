@@ -729,7 +729,7 @@ const DICT = {
   users_preview_as:         { ge: 'ხილვა',                              en: 'Preview' },
   users_preview_hint:       { ge: 'ნახე სისტემა ამ მომხმარებლის თვალით',  en: 'See the system from this user’s point of view' },
   impersonate_banner:       { ge: 'ხედავ როგორც',                       en: 'Viewing as' },
-  impersonate_return:       { ge: '↩ ადმინად დაბრუნება',            en: '↩ Return to admin' },
+  impersonate_return:       { ge: 'ადმინად დაბრუნება',                en: 'Return to admin' },
   dd_view:                  { ge: 'ნახვა',                             en: 'View' },
   dd_mark_returned:         { ge: 'საწყობში დაბრუნება',                en: 'Return to warehouse' },
   dd_return_reason_ph:      { ge: 'დაბრუნების მიზეზი…',                en: 'Reason for return…' },

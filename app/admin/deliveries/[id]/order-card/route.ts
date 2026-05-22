@@ -93,7 +93,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 </head>
 <body>
 <div class="toolbar">
-  <button type="button" class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+  <button type="button" class="print-btn" onclick="window.print()">Print / Save as PDF</button>
   <span style="margin-left:12px;font-size:12px;color:#666">Press <strong>Ctrl/Cmd + P</strong> to print this order card on a label printer or save as PDF.</span>
 </div>
 <div class="card">
