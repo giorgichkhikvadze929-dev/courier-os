@@ -289,7 +289,92 @@ export default function VerifyPanel({
         </div>
       )}
 
-      <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-x-auto">
+      {/* Mobile / tablet card list — same data as the table but stacked,
+          so each parcel + its action menu is readable on a phone. Hidden
+          at lg+; the table below takes over there. */}
+      <div className="lg:hidden flex flex-col gap-3 mb-3">
+        {visibleRows.length === 0 ? (
+          <p className="px-6 py-5 text-sm text-[var(--color-text-muted)] bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)]">{t('verify_no_pending')}</p>
+        ) : (
+          visibleRows.map((d) => (
+            <div key={d.id} className={`bg-[var(--color-card)] rounded-2xl shadow-sm border ${selected.has(d.id) ? 'border-cyan-400 bg-cyan-500/5' : 'border-[var(--color-border)]'} p-4`}>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={selected.has(d.id)}
+                  onChange={() => toggle(d.id)}
+                  className="mt-1 rounded flex-shrink-0 w-4 h-4"
+                  aria-label={`Select ${d.trackingNumber}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{d.trackingNumber}</p>
+                  <p className="text-sm font-medium text-[var(--color-text-strong)] mt-0.5 truncate">{d.customerName}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] font-mono">{d.customerPhone}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                    {d.company?.name && (
+                      <span className="text-[var(--color-text-muted)]">{d.company.name}</span>
+                    )}
+                    {d.zone && (
+                      <span className="text-[var(--color-text-faint)]">· {tZone(d.zone, lang)}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                <details className="inline-block group">
+                  <summary className="cursor-pointer list-none inline-flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg px-3 py-1.5">{t('verify_btn_verify_short')}</span>
+                    <span className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] underline">{t('verify_btn_options')}</span>
+                  </summary>
+                  <div className="mt-2 bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-3">
+                    <RowVerify
+                      deliveryId={d.id}
+                      onActed={(id) => {
+                        flushSync(() => {
+                          setRemovedIds((prev) => new Set(prev).add(id))
+                          setVerifiedCount((c) => c + 1)
+                          setLastAction('verified')
+                          setResult(`${t('verify_result_verified')} 1`)
+                        })
+                        router.refresh()
+                      }}
+                      labelInputPlaceholder={t('verify_placeholder')}
+                      labelButton={t('verify_btn_verify_short')}
+                    />
+                    <div className="border-t border-[var(--color-border)] pt-2 mb-2">
+                      <RowFlag
+                        deliveryId={d.id}
+                        onActed={() => router.refresh()}
+                        labelInputPlaceholder={t('verify_discrepancy_placeholder')}
+                        labelButton={t('verify_btn_flag')}
+                      />
+                    </div>
+                    <div className="border-t border-[var(--color-border)] pt-2">
+                      <RowDeny
+                        deliveryId={d.id}
+                        onActed={(id) => {
+                          flushSync(() => {
+                            setRemovedIds((prev) => new Set(prev).add(id))
+                            setDeniedCount((c) => c + 1)
+                            setLastAction('denied')
+                            setResult(`${t('verify_result_denied')} 1`)
+                          })
+                          router.refresh()
+                        }}
+                        labelInputPlaceholder={t('verify_deny_reason')}
+                        labelButton={t('verify_btn_deny')}
+                      />
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table — unchanged behaviour, lg+ only. */}
+      <div className="hidden lg:block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-x-auto">
         {visibleRows.length === 0 ? (
           <p className="px-6 py-5 text-sm text-[var(--color-text-muted)]">{t('verify_no_pending')}</p>
         ) : (
