@@ -110,3 +110,4 @@ html.sidebar-collapsed [data-sidebar-item] { justify-content: center; padding-le
 html.sidebar-collapsed [data-sidebar-user-meta] { display: none; }
 html.sidebar-collapsed [data-sidebar-signout] { display: none; }
 html.sidebar-collapsed [data-sidebar-user] { justify-content: center; padding-left: 0; padding-right: 0; }
+
