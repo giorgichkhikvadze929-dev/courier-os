@@ -31,15 +31,13 @@ const ICONS: Record<string, ReactNode> = {
 const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
-    // Primary entry: grouped orders (imports + courier assignments).
-    // Individual parcels live one click deeper inside an order — the old
-    // /admin/deliveries scattered view is no longer in the sidebar.
-    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.truck },
+    { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
     { href: '/admin/verify',      labelKey: 'nav_verify',     icon: ICONS.pkg },
     { href: '/admin/assign',      labelKey: 'nav_assign',     icon: ICONS.route },
     { href: '/admin/denied',      labelKey: 'nav_denied',     icon: ICONS.bell },
     { href: '/admin/import',      labelKey: 'nav_import',     icon: ICONS.upload },
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
+    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },
     // Users, Tariffs, Regions (places) — accessed via /admin/settings hub.
     // Inventory removed: not in PRD; pages still exist but unlinked.
@@ -47,11 +45,9 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   ],
   COMPANY: [
     { href: '/company',           labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
-    // Same logic on the company side — orders is the entry, parcels live
-    // inside an order. The standalone /company/parcels list is no longer
-    // surfaced in the sidebar.
-    { href: '/company/orders',    labelKey: 'nav_orders',     icon: ICONS.truck },
+    { href: '/company/parcels',   labelKey: 'nav_my_parcels', icon: ICONS.truck },
     { href: '/company/import',    labelKey: 'nav_upload',     icon: ICONS.upload },
+    { href: '/company/orders',    labelKey: 'nav_orders',     icon: ICONS.cash },
   ],
   COURIER: [
     { href: '/courier',           labelKey: 'nav_my_deliveries', icon: ICONS.truck },
