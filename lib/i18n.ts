@@ -550,6 +550,12 @@ const DICT = {
   settings_open:             { ge: 'გახსნა →',                              en: 'Open →' },
   back_to_settings:          { ge: '← პარამეტრები',                        en: '← Settings' },
 
+  // Courier inline comment on Delivered / Failed / Refused actions
+  courier_add_comment:       { ge: '+ კომენტარის დამატება',                  en: '+ Add comment' },
+  courier_comment_placeholder:{ ge: 'მოკლე კომენტარი (არჩევითი)…',           en: 'Short comment (optional)…' },
+  courier_confirm:           { ge: 'დადასტურება',                            en: 'Confirm' },
+  courier_cancel:            { ge: 'გაუქმება',                               en: 'Cancel' },
+
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },
   tariffs_active:        { ge: 'მოქმედი ტარიფები',           en: 'Active rates' },

@@ -9,6 +9,7 @@ import { StatusBadge, PriorityBadge } from '@/app/components/StatusBadge'
 import { getT } from '@/lib/i18n-server'
 import { tZone } from '@/lib/i18n'
 import { updateDeliveryStatus, returnToWarehouse } from './actions'
+import InTransitActions from './components/InTransitActions'
 import { money } from '@/lib/format'
 
 export default async function CourierPage() {
@@ -143,44 +144,16 @@ export default async function CourierPage() {
                   </form>
                 )}
                 {d.status === 'IN_TRANSIT' && (
-                  <div className="grid grid-cols-3 border-t border-[var(--color-border)] divide-x divide-[var(--color-border)]">
-                    <form action={updateDeliveryStatus.bind(null, d.id)}>
-                      <input type="hidden" name="status" value="DELIVERED" />
-                      <button
-                        type="submit"
-                        className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-success)] hover:bg-green-500 text-white font-semibold text-sm py-3 transition-colors"
-                      >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                        {t('dd_mark_delivered')}
-                      </button>
-                    </form>
-                    <form action={updateDeliveryStatus.bind(null, d.id)}>
-                      <input type="hidden" name="status" value="FAILED" />
-                      <button
-                        type="submit"
-                        className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-danger)] hover:bg-red-500 text-white font-semibold text-xs py-3 transition-colors"
-                      >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" />
-                        </svg>
-                        {t('label_failed')}
-                      </button>
-                    </form>
-                    <form action={updateDeliveryStatus.bind(null, d.id)}>
-                      <input type="hidden" name="status" value="REFUSED" />
-                      <button
-                        type="submit"
-                        className="w-full inline-flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs py-3 transition-colors"
-                      >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                        {t('label_refused')}
-                      </button>
-                    </form>
-                  </div>
+                  <InTransitActions
+                    deliveryId={d.id}
+                    labels={{
+                      delivered:          t('dd_mark_delivered'),
+                      failed:             t('label_failed'),
+                      refused:            t('label_refused'),
+                      addComment:         t('courier_add_comment'),
+                      commentPlaceholder: t('courier_comment_placeholder'),
+                    }}
+                  />
                 )}
                 {(d.status === 'FAILED' || d.status === 'REFUSED') && (
                   <form action={returnToWarehouse.bind(null, d.id)} className="border-t border-[var(--color-border)]">
