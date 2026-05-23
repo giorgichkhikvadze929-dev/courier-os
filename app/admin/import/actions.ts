@@ -23,11 +23,15 @@ export type ImportOutcome = {
   failed: number
   duplicatesInDb: number
   errors: { rowNumber: number; reason: string }[]
+  // If this commit created (or extended) an Order, the id is returned so the
+  // client can pass it back on the next chunk — keeps the whole file as ONE
+  // order rather than one-per-chunk.
+  orderId?: string | null
 }
 
 export async function commitImport(
   rowsJson: string,
-  options: { skipDuplicates: boolean; companyId?: string },
+  options: { skipDuplicates: boolean; companyId?: string; filename?: string; orderId?: string },
 ): Promise<ImportOutcome> {
   const session = await requireAdmin()
   const actorId = (session.user as { id?: string }).id ?? null
@@ -49,17 +53,20 @@ export async function commitImport(
     existing.map((d) => `${d.customerPhone}::${d.dropoffAddress.toLowerCase()}`)
   )
 
-  // Create the parent Order up-front if we know which company this batch is
-  // for. Admin imports without a chosen company can't be grouped, so we skip
-  // (orderId stays null on those Delivery rows).
-  let orderId: string | null = null
+  // One Order per file across chunks: the first chunk creates the order, the
+  // client passes its id back on subsequent chunks via options.orderId.
+  let orderId: string | null = options.orderId ?? null
   let orderNumber: string | null = null
-  if (options.companyId) {
+  if (!orderId && options.companyId) {
     const created = await createOrderForBatch({
       companyId:   options.companyId,
       parcelCount: 0,    // updated after we know how many committed
       totalValue:  0,
-      notes:       'Imported by admin',
+      // Stash the filename in notes so the Orders list can show it as the
+      // row label — same shape as the company import already uses.
+      notes:       options.filename
+        ? `Source file: ${options.filename}`
+        : 'Imported by admin',
     })
     orderId = created.id
     orderNumber = created.orderNumber
@@ -122,18 +129,23 @@ export async function commitImport(
     }
   }
 
-  // Update the Order with the final parcel count + total value snapshot. If
-  // nothing committed (out.created === 0) the order would be empty and
-  // confusing, so delete it.
-  if (orderId) {
-    if (out.created === 0) {
-      await prisma.order.delete({ where: { id: orderId } })
-    } else {
-      await prisma.order.update({
-        where: { id: orderId },
-        data:  { parcelCount: out.created, totalValue },
-      })
-    }
+  // Update the Order with the running totals. We add (not set) because the
+  // client may call commitImport multiple times for one file (chunking) — the
+  // order must reflect the cumulative count + value across all chunks. The
+  // empty-chunk case is only meaningful for the FIRST chunk (no orderId came
+  // in); a later empty chunk is a no-op and the order stays.
+  if (orderId && out.created > 0) {
+    await prisma.order.update({
+      where: { id: orderId },
+      data:  {
+        parcelCount: { increment: out.created },
+        totalValue:  { increment: totalValue },
+      },
+    })
+  } else if (orderId && out.created === 0 && !options.orderId) {
+    // First chunk created the order but committed nothing — drop it.
+    await prisma.order.delete({ where: { id: orderId } })
+    orderId = null
   }
 
   await audit({
@@ -145,5 +157,5 @@ export async function commitImport(
   revalidatePath('/admin')
   revalidatePath('/admin/assign')
   revalidatePath('/admin/orders')
-  return out
+  return { ...out, orderId }
 }

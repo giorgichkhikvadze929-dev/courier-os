@@ -209,6 +209,10 @@ export default function ImportClient({ companies, lang = 'ge' }: { companies: Co
     setProgress({ done: 0, total })
     const aggregate: ImportOutcome = { created: 0, skipped: 0, failed: 0, duplicatesInDb: 0, errors: [] }
 
+    // One file = one Order across all chunks. First successful chunk returns
+    // its orderId; later chunks pass it back so the server reuses it instead
+    // of creating a new order per chunk.
+    let orderId: string | undefined
     try {
       for (let i = 0; i < renamed.length; i += CHUNK_SIZE) {
         const chunk = renamed.slice(i, i + CHUNK_SIZE)
@@ -216,7 +220,12 @@ export default function ImportClient({ companies, lang = 'ge' }: { companies: Co
           const o = await commitImport(JSON.stringify(chunk), {
             skipDuplicates: skipDup,
             companyId: companyId || undefined,
+            // Pass the source filename so the resulting Order in /admin/orders
+            // shows up labelled with the file name (matches the company side).
+            filename: fileName || undefined,
+            orderId,
           })
+          if (o.orderId) orderId = o.orderId
           aggregate.created        += o.created
           aggregate.skipped        += o.skipped
           aggregate.failed         += o.failed
