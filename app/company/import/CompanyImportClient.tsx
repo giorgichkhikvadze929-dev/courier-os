@@ -6,7 +6,6 @@ import { parseRows, type ParseResult, type ImportRow } from '@/lib/import'
 import { uploadBatch, type CompanyUploadOutcome } from './actions'
 import { t as translate, type Lang, type DictKey } from '@/lib/i18n'
 import { loadImportDraft, clearImportDraft, useAutoSaveDraft } from '@/lib/import-draft'
-import ImportRequirements from '@/app/components/ImportRequirements'
 
 const DRAFT_KEY = 'import-draft:company'
 // Chunk rows when sending to the server action so each call stays well under
@@ -255,14 +254,6 @@ export default function CompanyImportClient({ lang = 'ge' }: { lang?: Lang } = {
         <p className="text-xs text-[var(--color-text-faint)] mt-3">{t('import_size_hint')}</p>
       </div>
 
-      {/* Requirements + sample downloads. Quiet mode before/after a clean upload,
-          escalated red mode when the current preview has validation errors. */}
-      <ImportRequirements
-        lang={lang}
-        mode={hasBlockingErrors ? 'error' : 'info'}
-        errorCount={result?.errorRows ?? 0}
-      />
-
       {result && result.totalRows > 0 && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -274,7 +265,7 @@ export default function CompanyImportClient({ lang = 'ge' }: { lang?: Lang } = {
 
           <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
             <div className="px-6 py-3 border-b border-[var(--color-border)]">
-              <p className="text-sm font-semibold text-[var(--color-text)]">Preview (first 50 rows)</p>
+              <p className="text-sm font-semibold text-[var(--color-text)]">Preview — first 50 rows</p>
             </div>
             <div className="overflow-x-auto max-h-[400px]">
               <table className="w-full text-xs">
@@ -315,9 +306,8 @@ export default function CompanyImportClient({ lang = 'ge' }: { lang?: Lang } = {
           </div>
 
           <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
-            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide mb-3">Step 2 — Send to admin</p>
             <p className="text-sm text-[var(--color-text)] mb-3">
-              Your batch will be reviewed by an admin before parcels are entered into the system.
+              Looks good? Send this batch — an admin will review the parcels before they go live.
             </p>
             <button
               onClick={send}

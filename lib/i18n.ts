@@ -242,7 +242,7 @@ const DICT = {
   notifications_empty:      { ge: 'ჯერ არ გაქვთ შეტყობინებები.',en: 'No notifications yet.' },
 
   // Import — drag & drop zone
-  import_step1:             { ge: 'ნაბიჯი 1 — ფაილის არჩევა',     en: 'Step 1 — Choose file' },
+  import_step1:             { ge: 'ფაილის ატვირთვა',               en: 'Upload your file' },
   import_restored_title:    { ge: 'ბოლო ნამუშევარი აღდგენილია — შეცვლა გაგრძელდება სადაც დარჩა.', en: 'Resumed your last unsaved upload — keep editing where you left off.' },
   import_restored_discard:  { ge: 'უარყოფა',                       en: 'Discard' },
   import_drop_title:        { ge: 'გადაიტანეთ Excel ან CSV',        en: 'Drop Excel or CSV here' },
