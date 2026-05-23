@@ -10,15 +10,18 @@ import Pagination from '@/app/components/Pagination'
 const DEFAULT_PAGE_SIZE = 20
 
 const ACTION_COLOR: Record<string, string> = {
-  CREATE:        'bg-green-500/15 text-green-700 dark:text-green-300',
-  UPDATE:        'bg-blue-500/15 text-blue-700 dark:text-blue-300',
-  DELETE:        'bg-red-500/15 text-red-700 dark:text-red-300',
-  STATUS_CHANGE: 'bg-orange-500/15 text-orange-700 dark:text-orange-300',
-  ASSIGN:        'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
-  VERIFY:        'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
-  TARIFF_CHANGE: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
-  IMPORT:        'bg-blue-500/15 text-blue-700 dark:text-blue-300',
-  LOGIN:         'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+  CREATE:             'bg-green-500/15 text-green-700 dark:text-green-300',
+  UPDATE:             'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+  DELETE:             'bg-red-500/15 text-red-700 dark:text-red-300',
+  STATUS_CHANGE:      'bg-orange-500/15 text-orange-700 dark:text-orange-300',
+  ASSIGN:             'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
+  ASSIGN_PICKUP:      'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
+  VERIFY:             'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300',
+  TARIFF_CHANGE:      'bg-purple-500/15 text-purple-700 dark:text-purple-300',
+  IMPORT:             'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+  LOGIN:              'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+  IMPERSONATE_START:  'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300',
+  IMPERSONATE_STOP:   'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300',
 }
 
 export default async function AuditPage({

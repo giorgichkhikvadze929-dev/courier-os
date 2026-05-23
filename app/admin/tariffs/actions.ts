@@ -27,6 +27,12 @@ export async function upsertTariff(formData: FormData): Promise<void> {
 
   if (!companyId || !zone || !Number.isFinite(amount)) return
 
+  // Verify the company actually exists before writing — silently no-op'ing
+  // on a typoed companyId would leave the admin thinking they saved a tariff
+  // that won't ever match a real parcel.
+  const company = await prisma.company.findUnique({ where: { id: companyId }, select: { id: true } })
+  if (!company) return
+
   const before = await prisma.tariff.findFirst({
     where: { companyId, zone },
     orderBy: { effective: 'desc' },

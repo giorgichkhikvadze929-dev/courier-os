@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { signIn } from '@/auth'
+import { getT } from '@/lib/i18n-server'
 
 export type SignupResult =
   | { ok: true }
@@ -19,17 +20,18 @@ export type SignupResult =
  *     drive-by sign-ups from immediately having access to the app.
  */
 export async function signupWithEmail(formData: FormData): Promise<SignupResult> {
+  const { t } = await getT()
   const name = (formData.get('name') as string | null)?.trim()
   const email = (formData.get('email') as string | null)?.trim().toLowerCase()
   const password = (formData.get('password') as string | null) ?? ''
 
-  if (!name)                 return { ok: false, reason: 'Name is required' }
-  if (!email)                return { ok: false, reason: 'Email is required' }
-  if (!email.includes('@'))  return { ok: false, reason: 'Enter a valid email address' }
-  if (password.length < 8)   return { ok: false, reason: 'Password must be at least 8 characters' }
+  if (!name)                 return { ok: false, reason: t('signup_err_name_required') }
+  if (!email)                return { ok: false, reason: t('signup_err_email_required') }
+  if (!email.includes('@'))  return { ok: false, reason: t('signup_err_email_invalid') }
+  if (password.length < 8)   return { ok: false, reason: t('signup_err_password_short') }
 
   const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return { ok: false, reason: 'An account with that email already exists' }
+  if (existing) return { ok: false, reason: t('signup_err_email_exists') }
 
   const passwordHash = await bcrypt.hash(password, 10)
   await prisma.user.create({

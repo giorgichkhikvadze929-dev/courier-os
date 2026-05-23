@@ -15,13 +15,20 @@ async function requireAdmin() {
   return session
 }
 
+const VALID_ROLES = ['ADMIN', 'COMPANY', 'COURIER'] as const
+function sanitizeRole(raw: unknown): 'ADMIN' | 'COMPANY' | 'COURIER' {
+  // Never trust the form value — a hand-crafted POST could send anything.
+  // Fall back to COURIER (the safest default; no admin privileges).
+  return VALID_ROLES.includes(raw as never) ? (raw as 'ADMIN' | 'COMPANY' | 'COURIER') : 'COURIER'
+}
+
 export async function createUser(formData: FormData): Promise<void> {
   const session = await requireAdmin()
   const actorId = (session.user as { id?: string }).id ?? null
   const name      = (formData.get('name') as string).trim()
   const email     = (formData.get('email') as string).trim().toLowerCase()
   const password  = formData.get('password') as string
-  const role      = formData.get('role') as string
+  const role      = sanitizeRole(formData.get('role'))
   const phone     = (formData.get('phone') as string | null)?.trim() || null
   const companyId = (formData.get('companyId') as string | null)?.trim() || null
 
@@ -43,7 +50,7 @@ export async function updateUser(id: string, formData: FormData): Promise<void> 
   const before = await prisma.user.findUnique({ where: { id }, select: { name: true, email: true, role: true, companyId: true, active: true } })
   const name      = (formData.get('name') as string).trim()
   const email     = (formData.get('email') as string).trim().toLowerCase()
-  const role      = formData.get('role') as string
+  const role      = sanitizeRole(formData.get('role'))
   const phone     = (formData.get('phone') as string | null)?.trim() || null
   const companyId = (formData.get('companyId') as string | null)?.trim() || null
   const active    = formData.get('active') === 'true'

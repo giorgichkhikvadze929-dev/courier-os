@@ -45,7 +45,9 @@ export async function startImpersonation(targetUserId: string): Promise<void> {
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: 60 * 60, // 1 hour — auto-expires so admins don't get stuck impersonating
+    // 8 hours — a typical working day. The impersonation banner stays
+    // visible the whole time so the admin can't forget they're previewing.
+    maxAge: 60 * 60 * 8,
   })
 
   await audit({

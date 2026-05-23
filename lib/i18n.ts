@@ -206,6 +206,12 @@ const DICT = {
   signup_success_body:   { ge: 'ადმინი დაამოწმებს თქვენს ანგარიშს, შემდეგ თქვენ შეძლებთ შესვლას.', en: 'An admin will approve your account, then you can sign in.' },
   signup_back_to_login:  { ge: 'შესვლა',                       en: 'Go to sign in' },
   signup_have_account:   { ge: 'უკვე გაქვს ანგარიში?',         en: 'Already have an account?' },
+  // Validation errors shown in red under the form on submit.
+  signup_err_name_required:   { ge: 'სახელის შეყვანა აუცილებელია',      en: 'Name is required' },
+  signup_err_email_required:  { ge: 'ელფოსტის შეყვანა აუცილებელია',     en: 'Email is required' },
+  signup_err_email_invalid:   { ge: 'შეიყვანე სწორი ელფოსტა',            en: 'Enter a valid email address' },
+  signup_err_password_short:  { ge: 'პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს', en: 'Password must be at least 8 characters' },
+  signup_err_email_exists:    { ge: 'ამ ელფოსტით ანგარიში უკვე არსებობს',  en: 'An account with that email already exists' },
 
   // Page titles + subtitles
   title_admin_dashboard: { ge: 'ადმინის მთავარი',           en: 'Admin Dashboard' },
