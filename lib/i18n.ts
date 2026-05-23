@@ -50,7 +50,7 @@ const DICT = {
 
   // Sidebar nav
   nav_dashboard:         { ge: 'მთავარი',                   en: 'Dashboard' },
-  nav_deliveries:        { ge: 'შეკვეთები',                  en: 'Orders' },
+  nav_deliveries:        { ge: 'მიწოდებები',                  en: 'Deliveries' },
   nav_verify:            { ge: 'ვერიფიკაცია',               en: 'Verify' },
   nav_import:            { ge: 'იმპორტი',                   en: 'Import' },
   nav_companies:         { ge: 'კომპანიები',                en: 'Companies' },
@@ -58,7 +58,7 @@ const DICT = {
   nav_users:             { ge: 'მომხმარებლები',             en: 'Users' },
   nav_audit:             { ge: 'აუდიტი',                    en: 'Audit Log' },
   nav_settings:          { ge: 'პარამეტრები',               en: 'Settings' },
-  nav_my_parcels:        { ge: 'ჩემი შეკვეთები',              en: 'My Orders' },
+  nav_my_parcels:        { ge: 'ჩემი მიწოდებები',              en: 'My Deliveries' },
   nav_upload:            { ge: 'ატვირთვა',                  en: 'Upload' },
   nav_my_deliveries:     { ge: 'ჩემი შეკვეთები',              en: 'My Orders' },
   nav_history:           { ge: 'ისტორია',                   en: 'History' },
