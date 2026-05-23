@@ -4,7 +4,6 @@ import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import type { ReactNode } from 'react'
 import ThemeToggle from './ThemeToggle'
-import AccentPicker from './AccentPicker'
 import LangPicker from './LangPicker'
 import SidebarToggle from './SidebarToggle'
 import MobileDrawer from './MobileDrawer'
@@ -194,7 +193,6 @@ export default async function Shell({
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <LangPicker />
           <ThemeToggle />
-          <AccentPicker />
           <Link href="/notifications" aria-label="Notifications" className="relative p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] rounded-lg hover:bg-[var(--color-card-hover)] transition-colors">
             {ICONS.bell}
             {unread > 0 && (
@@ -227,7 +225,6 @@ export default async function Shell({
 
             <LangPicker />
             <ThemeToggle />
-            <AccentPicker />
             <Link href="/notifications" className="relative p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] rounded-lg hover:bg-[var(--color-card-hover)] transition-colors">
               {ICONS.bell}
               {unread > 0 && (
