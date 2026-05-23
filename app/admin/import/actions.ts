@@ -75,15 +75,22 @@ export async function commitImport(
   let totalValue = 0
 
   for (const row of parsed.rows) {
-    if (row.errors.length > 0) {
-      out.failed++
-      out.errors.push({ rowNumber: row.rowNumber, reason: row.errors.join('; ') })
-      continue
-    }
+    const d = row.data as CanonicalRow
+    // Permissive mode: import every row, even when required fields are
+    // missing. Empty required fields are filled with a placeholder so the
+    // DB write succeeds. The admin already has the parcels in front of
+    // them, so anything that smells off can be fixed later in the
+    // delivery detail page.
+    const customerName    = d.customerName    || '—'
+    const customerPhone   = d.customerPhone   || '—'
+    const dropoffAddress  = d.dropoffAddress  || '—'
 
-    const d = row.data as Required<Pick<CanonicalRow, 'customerName' | 'customerPhone' | 'dropoffAddress'>> & CanonicalRow
-    const key = `${d.customerPhone}::${d.dropoffAddress.toLowerCase()}`
-    if (options.skipDuplicates && existingKeys.has(key)) {
+    // Only dedupe rows that have BOTH real fields. Rows with placeholder
+    // phone/address would otherwise all collide on the same '—::—' key
+    // and only the first would land.
+    const canDedupe = !!d.customerPhone && !!d.dropoffAddress
+    const key       = canDedupe ? `${d.customerPhone}::${d.dropoffAddress!.toLowerCase()}` : null
+    if (canDedupe && options.skipDuplicates && key && existingKeys.has(key)) {
       out.duplicatesInDb++
       out.skipped++
       continue
@@ -101,10 +108,10 @@ export async function commitImport(
           verifiedAt:     new Date(),
           verifiedNote:   'Imported directly by admin',
           priority:       d.priority ?? 'NORMAL',
-          customerName:   d.customerName,
-          customerPhone:  d.customerPhone,
+          customerName:   customerName,
+          customerPhone:  customerPhone,
           customerEmail:  d.customerEmail ?? null,
-          dropoffAddress: d.dropoffAddress,
+          dropoffAddress: dropoffAddress,
           zone:           d.zone ?? null,
           city:           d.city ?? null,
           postalCode:     d.postalCode ?? null,
@@ -122,7 +129,7 @@ export async function commitImport(
       })
       out.created++
       totalValue += d.codAmount ?? 0
-      existingKeys.add(key)
+      if (key) existingKeys.add(key)
     } catch (err) {
       out.failed++
       out.errors.push({ rowNumber: row.rowNumber, reason: err instanceof Error ? err.message : 'Unknown error' })

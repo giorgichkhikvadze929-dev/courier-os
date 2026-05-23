@@ -7,7 +7,6 @@ import { parseRows, type ParseResult, type ImportRow, type CanonicalRow } from '
 import { commitImport, type ImportOutcome } from './actions'
 import { t as translate, type Lang, type DictKey } from '@/lib/i18n'
 import { loadImportDraft, clearImportDraft, useAutoSaveDraft } from '@/lib/import-draft'
-import ImportRequirements from '@/app/components/ImportRequirements'
 
 // Send rows in chunks so we never hit the server-action body size limit,
 // no matter how large the source file is.
@@ -327,45 +326,15 @@ export default function ImportClient({ companies, lang = 'ge' }: { companies: Co
         <p className="text-xs text-[var(--color-text-faint)] mt-3">{t('import_size_hint')}</p>
       </div>
 
-      {/* Requirements + sample downloads. Escalated styling when preview has errors. */}
-      <ImportRequirements
-        lang={lang}
-        mode={result && result.errorRows > 0 ? 'error' : 'info'}
-        errorCount={result?.errorRows ?? 0}
-      />
-
       {result && result.totalRows > 0 && (
         <>
-          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
-            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide mb-4">{t('import_step2_map')}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {result.headers.map((h) => (
-                <div key={h} className="flex flex-col gap-1">
-                  <span className="text-xs font-mono text-[var(--color-text-muted)] truncate" title={h}>{h}</span>
-                  <select
-                    value={mapping[h] ?? ''}
-                    onChange={(e) => changeMapping(h, e.target.value)}
-                    className="border border-[var(--color-border-strong)] rounded-xl px-3 py-2 text-sm text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-[var(--color-card)]"
-                  >
-                    {CANONICAL_FIELDS.map((f) => (
-                      <option key={f || 'none'} value={f}>{f === '' ? t('import_skip_column') : f}</option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Summary */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Stat label={t('import_stat_total')} value={result.totalRows} color="text-[var(--color-text-strong)]" />
-            <Stat label={t('import_stat_valid')} value={result.validRows} color="text-green-600 dark:text-green-400" />
-            <Stat label={t('import_stat_errors')} value={result.errorRows} color="text-red-600 dark:text-red-400" />
+          {/* Summary — just total + duplicates now that we don't gate on
+              "valid" rows. Everything else gets imported as-is and the
+              admin fixes details later in the delivery editor. */}
+          <div className="grid grid-cols-2 gap-3">
+            <Stat label={t('import_stat_total')}      value={result.totalRows}      color="text-[var(--color-text-strong)]" />
             <Stat label={t('import_stat_duplicates')} value={result.duplicateRows} color="text-yellow-600 dark:text-yellow-400" />
           </div>
-
-          {/* Issue summary — what to fix in the file */}
-          <IssueSummary result={result} mapping={mapping} t={t} />
 
           {/* Editable preview */}
           <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
@@ -441,12 +410,12 @@ export default function ImportClient({ companies, lang = 'ge' }: { companies: Co
             </div>
             <button
               onClick={commit}
-              disabled={busy || result.validRows === 0}
+              disabled={busy || result.totalRows === 0}
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl px-6 py-2.5 text-sm transition-colors"
             >
               {busy
                 ? (progress ? `${t('import_importing_pct')} ${progress.done.toLocaleString()} / ${progress.total.toLocaleString()}…` : `${t('import_importing_pct')}…`)
-                : `${t('import_import_btn')} ${result.validRows.toLocaleString()} ${t('import_valid_rows_word')}`}
+                : `${t('import_import_btn')} ${result.totalRows.toLocaleString()} ${t('import_valid_rows_word')}`}
             </button>
             {busy && progress && (
               <div className="mt-3 w-full bg-[var(--color-card-hover)] rounded-full h-2 overflow-hidden">
