@@ -2,6 +2,21 @@
 
 import { useEffect, useState } from 'react'
 
+/**
+ * Light/dark mode toggle.
+ *
+ * Persistence: writes a `theme` cookie that the root layout reads on every
+ * request to apply the `dark` class server-side. We don't rely on
+ * localStorage anymore — the cookie is the source of truth (no flash, no
+ * inline script needed).
+ */
+
+const ONE_YEAR = 60 * 60 * 24 * 365
+
+function setCookie(name: string, value: string) {
+  document.cookie = `${name}=${value}; path=/; max-age=${ONE_YEAR}; samesite=lax`
+}
+
 export default function ThemeToggle() {
   const [mode, setMode] = useState<'light' | 'dark' | null>(null)
 
@@ -14,7 +29,7 @@ export default function ThemeToggle() {
     const next = mode === 'dark' ? 'light' : 'dark'
     setMode(next)
     document.documentElement.classList.toggle('dark', next === 'dark')
-    try { localStorage.setItem('theme', next) } catch {}
+    setCookie('theme', next)
   }
 
   return (

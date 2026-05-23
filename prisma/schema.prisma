@@ -29,6 +29,8 @@ model User {
 
   // Reverse relations
   assignedDeliveries  Delivery[]      @relation("CourierDeliveries")
+  // Outbound delivery bundles given to this courier (ASSIGNMENT-type orders).
+  assignmentOrders    Order[]         @relation("CourierAssignmentOrders")
   pickupDeliveries    Delivery[]      @relation("PickupDeliveries")
   importedBatches     ImportBatch[]
   notifications       Notification[]
@@ -112,11 +114,17 @@ model Delivery {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
-  // Parent order — set on import-commit. Every parcel created by the importer
-  // belongs to exactly one Order (one batch = one order). Nullable so legacy
-  // rows created before this model existed don't break.
+  // Parent IMPORT order — set on import-commit. Every parcel created by the
+  // importer belongs to exactly one IMPORT order (one batch = one order).
+  // Nullable so legacy rows created before this model existed don't break.
   orderId String?
-  order   Order?  @relation(fields: [orderId], references: [id])
+  order   Order?  @relation("ImportOrder", fields: [orderId], references: [id])
+
+  // ASSIGNMENT order — set when this parcel is bundled into a courier batch
+  // and given to that courier. A reassign (to a different courier) creates a
+  // new ASSIGNMENT order and repoints this field.
+  assignmentOrderId String?
+  assignmentOrder   Order?  @relation("AssignmentOrder", fields: [assignmentOrderId], references: [id])
 
   // Assignment — delivery courier (warehouse → customer)
   courierId String?
@@ -159,6 +167,7 @@ model Delivery {
   @@index([courierId])
   @@index([pickupCourierId])
   @@index([orderId])
+  @@index([assignmentOrderId])
 }
 
 model DeliveryHistory {
@@ -251,11 +260,23 @@ model Notification {
 
 model Order {
   id            String   @id @default(cuid())
-  // Sequential human-readable id, e.g. ORD-2026-0001
+  // Sequential human-readable id. Prefix encodes the type:
+  //   IMP-YYYY-NNNN — created when an Excel batch is imported
+  //   ASN-YYYY-NNNN — created when a bundle of parcels is assigned to a courier
   orderNumber   String   @unique
 
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id])
+  // What kind of order this is. IMPORT = "came in together". ASSIGNMENT =
+  // "goes out together with this courier on this run."
+  type          String   @default("IMPORT")  // IMPORT | ASSIGNMENT
+
+  // Sender for IMPORT orders. Always set for IMPORT; nullable on ASSIGNMENT
+  // because an assignment can mix parcels from different companies.
+  companyId     String?
+  company       Company? @relation(fields: [companyId], references: [id])
+
+  // The courier this bundle is going out with. Set for ASSIGNMENT orders.
+  courierId     String?
+  courier       User?    @relation("CourierAssignmentOrders", fields: [courierId], references: [id])
 
   // Optional 1-1 link back to the import batch that created this order.
   importBatchId String?  @unique
@@ -270,9 +291,15 @@ model Order {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  deliveries    Delivery[]
+  // Parcels grouped under this order. `Delivery.orderId` links the IMPORT
+  // side; `Delivery.assignmentOrderId` links the ASSIGNMENT side. The same
+  // parcel can belong to one of each (its origin and its outbound bundle).
+  importDeliveries     Delivery[] @relation("ImportOrder")
+  assignmentDeliveries Delivery[] @relation("AssignmentOrder")
 
   @@index([companyId])
+  @@index([courierId])
+  @@index([type])
 }
 
 // ─── Georgian geography (region → municipality → place) ───────────────────────

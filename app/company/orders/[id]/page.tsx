@@ -23,7 +23,7 @@ export default async function CompanyOrderDetailPage({ params }: { params: Promi
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
-      deliveries: { orderBy: { createdAt: 'asc' } },
+      importDeliveries: { orderBy: { createdAt: 'asc' as const } },
     },
   })
   if (!order) notFound()
@@ -44,10 +44,10 @@ export default async function CompanyOrderDetailPage({ params }: { params: Promi
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
           <div className="px-6 py-3 border-b border-[var(--color-border)]">
-            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('order_parcels_section')} ({order.deliveries.length})</p>
+            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('order_parcels_section')} ({order.importDeliveries.length})</p>
           </div>
           <ul className="divide-y divide-[var(--color-border)]">
-            {order.deliveries.map((d) => (
+            {order.importDeliveries.map((d) => (
               <li key={d.id}>
                 <Link href={`/company/parcels/${d.id}`} className="flex items-center gap-3 px-6 py-3 hover:bg-[var(--color-card-hover)] transition-colors">
                   <div className="min-w-0 flex-1">

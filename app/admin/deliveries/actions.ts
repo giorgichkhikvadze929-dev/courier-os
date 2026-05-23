@@ -72,10 +72,19 @@ export async function assignSingle(deliveryId: string, formData: FormData): Prom
   if (!['IN_WAREHOUSE', 'RECEIVED', 'ASSIGNED'].includes(before.status)) return
   await prisma.delivery.update({ where: { id: deliveryId }, data: { courierId, status: 'ASSIGNED' } })
   await prisma.deliveryHistory.create({ data: { deliveryId, status: 'ASSIGNED', note: 'Assigned by admin', actorId } })
+  // One-parcel assignment still gets its own ASSIGNMENT order so the audit /
+  // courier-side history stays consistent with the bulk path.
+  const { createAssignmentOrder } = await import('@/lib/order')
+  await createAssignmentOrder({
+    courierId,
+    deliveryIds: [deliveryId],
+    notes: 'Single assignment by admin',
+  })
   await notify(courierId, 'New delivery assigned', `Delivery ${before.trackingNumber} has been assigned to you.`, 'INFO', `/courier/deliveries/${deliveryId}`)
   await audit({ actorId, action: 'ASSIGN', entity: 'Delivery', entityId: deliveryId, before: { courierId: before.courierId, status: before.status }, after: { courierId, status: 'ASSIGNED' } })
   revalidatePath(`/admin/deliveries/${deliveryId}`)
   revalidatePath('/admin/deliveries')
+  revalidatePath('/admin/orders')
 }
 
 /**
@@ -126,6 +135,7 @@ export async function bulkAssignToCourier(ids: string[], courierId: string): Pro
   if (ids.length === 0 || !courierId) return { total: 0, assigned: 0, skipped: 0, failed: [] }
 
   const out: BulkResult = { total: ids.length, assigned: 0, skipped: 0, failed: [] }
+  const assignedIds: string[] = []
   for (const id of ids) {
     try {
       const d = await prisma.delivery.findUnique({ where: { id } })
@@ -146,10 +156,35 @@ export async function bulkAssignToCourier(ids: string[], courierId: string): Pro
       await notify(courierId, 'New delivery assigned', `Delivery ${d.trackingNumber} has been assigned to you.`, 'INFO', `/courier/deliveries/${id}`)
       await audit({ actorId, action: 'ASSIGN', entity: 'Delivery', entityId: id, before: { courierId: d.courierId, status: d.status }, after: { courierId, status: 'ASSIGNED' } })
       out.assigned++
+      assignedIds.push(id)
     } catch (err) {
       out.failed.push({ id, reason: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
+
+  // Group the successfully-assigned parcels into a new ASSIGNMENT order so
+  // the bundle is tracked as one delivery batch (matches the way orders are
+  // grouped for imports).
+  if (assignedIds.length > 0) {
+    const { createAssignmentOrder } = await import('@/lib/order')
+    const order = await createAssignmentOrder({
+      courierId,
+      deliveryIds: assignedIds,
+      notes: `Bulk assignment by admin · ${assignedIds.length} parcels`,
+    })
+    if (order) {
+      await audit({
+        actorId,
+        action: 'CREATE',
+        entity: 'Order',
+        entityId: order.id,
+        after: { orderNumber: order.orderNumber, type: 'ASSIGNMENT', courierId, parcelCount: order.count },
+        note: `Created assignment order ${order.orderNumber}`,
+      })
+    }
+  }
+
   revalidatePath('/admin/deliveries')
+  revalidatePath('/admin/orders')
   return out
 }

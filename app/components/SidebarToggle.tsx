@@ -25,7 +25,10 @@ export default function SidebarToggle({
     const next = !document.documentElement.classList.contains('sidebar-collapsed')
     document.documentElement.classList.toggle('sidebar-collapsed', next)
     setCollapsed(next)
-    try { localStorage.setItem('sidebar-collapsed', next ? '1' : '0') } catch {}
+    // Cookie-based persistence so the server can render the right state on
+    // first paint (no flash, no inline script).
+    const ONE_YEAR = 60 * 60 * 24 * 365
+    document.cookie = `sidebar-collapsed=${next ? '1' : '0'}; path=/; max-age=${ONE_YEAR}; samesite=lax`
   }
 
   return (

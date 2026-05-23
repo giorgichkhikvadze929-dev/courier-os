@@ -1,12 +1,23 @@
 import prisma from './prisma'
 
 /**
- * Allocate the next ORD-YYYY-NNNN sequential id. Per-year sequence so the
- * numbers stay short and human-readable.
+ * Two flavours of Order live in the same table, distinguished by `type`:
+ *   - IMPORT     — an Excel batch upload (one company, N parcels).
+ *                  Numbered IMP-YYYY-NNNN.
+ *   - ASSIGNMENT — a bundle of parcels given to a courier in one go.
+ *                  Numbered ASN-YYYY-NNNN.
  */
-export async function nextOrderNumber(): Promise<string> {
+type OrderType = 'IMPORT' | 'ASSIGNMENT'
+
+const PREFIX: Record<OrderType, string> = {
+  IMPORT:     'IMP',
+  ASSIGNMENT: 'ASN',
+}
+
+/** Allocate the next sequential id for the given type. Per-year, per-type. */
+export async function nextOrderNumber(type: OrderType): Promise<string> {
   const year = new Date().getUTCFullYear()
-  const prefix = `ORD-${year}-`
+  const prefix = `${PREFIX[type]}-${year}-`
   const latest = await prisma.order.findFirst({
     where: { orderNumber: { startsWith: prefix } },
     orderBy: { orderNumber: 'desc' },
@@ -18,12 +29,8 @@ export async function nextOrderNumber(): Promise<string> {
 }
 
 /**
- * Create an Order representing one import batch. Returns the new order id so
- * the caller can stamp `orderId` on each Delivery row it inserts.
- *
- * `parcelCount` and `totalValue` are stored at creation time (snapshot of the
- * batch). They never get out of sync because Deliveries can't be added to an
- * existing Order — every commit makes a new one.
+ * Create an IMPORT order representing one Excel batch. Returns the new order
+ * id so the caller can stamp `orderId` on each Delivery row it inserts.
  */
 export async function createOrderForBatch(args: {
   companyId: string
@@ -32,10 +39,11 @@ export async function createOrderForBatch(args: {
   totalValue: number
   notes?: string | null
 }): Promise<{ id: string; orderNumber: string }> {
-  const orderNumber = await nextOrderNumber()
+  const orderNumber = await nextOrderNumber('IMPORT')
   const order = await prisma.order.create({
     data: {
       orderNumber,
+      type:          'IMPORT',
       companyId:     args.companyId,
       importBatchId: args.importBatchId ?? null,
       parcelCount:   args.parcelCount,
@@ -45,4 +53,44 @@ export async function createOrderForBatch(args: {
     select: { id: true, orderNumber: true },
   })
   return order
+}
+
+/**
+ * Create an ASSIGNMENT order grouping a batch of parcels handed to one
+ * courier in a single action. Stamps `assignmentOrderId` on each delivery
+ * and snapshots parcelCount + totalValue from the affected rows.
+ */
+export async function createAssignmentOrder(args: {
+  courierId: string
+  deliveryIds: string[]
+  notes?: string | null
+}): Promise<{ id: string; orderNumber: string; count: number } | null> {
+  if (args.deliveryIds.length === 0) return null
+
+  // Snapshot values from the parcels we're about to bundle.
+  const agg = await prisma.delivery.aggregate({
+    where: { id: { in: args.deliveryIds } },
+    _sum:  { codAmount: true },
+    _count: { _all: true },
+  })
+
+  const orderNumber = await nextOrderNumber('ASSIGNMENT')
+  const order = await prisma.order.create({
+    data: {
+      orderNumber,
+      type:        'ASSIGNMENT',
+      courierId:   args.courierId,
+      parcelCount: agg._count._all,
+      totalValue:  agg._sum.codAmount ?? 0,
+      notes:       args.notes ?? null,
+    },
+    select: { id: true, orderNumber: true },
+  })
+
+  await prisma.delivery.updateMany({
+    where: { id: { in: args.deliveryIds } },
+    data:  { assignmentOrderId: order.id },
+  })
+
+  return { id: order.id, orderNumber: order.orderNumber, count: agg._count._all }
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,33 +18,35 @@ export const metadata: Metadata = {
   description: "Courier management platform",
 };
 
-// Runs before paint so dark mode + sidebar state apply without a flash.
-// Also clears any leftover cos-brand entry from earlier color-picker experiments
-// so the defaults from globals.css always win now.
-const themeInitScript = `(function(){try{
-var t=localStorage.getItem('theme');
-if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
-if(t==='dark')document.documentElement.classList.add('dark');
-if(localStorage.getItem('sidebar-collapsed')==='1')document.documentElement.classList.add('sidebar-collapsed');
-localStorage.removeItem('cos-brand');
-}catch(e){}})();`;
-
-export default function RootLayout({
+/**
+ * Theming is cookie-based, not script-based:
+ *   - `theme` cookie  = 'dark' | 'light' — toggled by the moon/sun icon
+ *   - `sidebar-collapsed` cookie = '1' — toggled by the sidebar arrow
+ *
+ * Reading them server-side and putting the classes straight on <html> means
+ * there's no inline `<script>` in the tree (avoids the Next 16 / React 19 dev
+ * overlay) and no flash of light theme on first paint.
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const ck = await cookies()
+  const theme = ck.get('theme')?.value === 'dark' ? 'dark' : 'light'
+  const sidebarCollapsed = ck.get('sidebar-collapsed')?.value === '1'
+
+  const htmlClass = [
+    geistSans.variable,
+    geistMono.variable,
+    'h-full antialiased',
+    theme === 'dark' ? 'dark' : '',
+    sidebarCollapsed ? 'sidebar-collapsed' : '',
+  ].filter(Boolean).join(' ')
+
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={htmlClass} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
-        {/* Inline script must run before paint, so we use a plain <script> tag
-            with dangerouslySetInnerHTML. The Next 16 / React 19 dev overlay
-            warns when a <Script> component is given JSX text children. */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {children}
       </body>
     </html>

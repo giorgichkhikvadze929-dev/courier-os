@@ -31,7 +31,9 @@ export default async function CompanyOrdersPage() {
 
   const { t } = await getT()
   const orders = await prisma.order.findMany({
-    where:    { companyId },
+    // Companies only ever see their own IMPORT orders — outbound courier
+    // bundles are an internal concept.
+    where:    { companyId, type: 'IMPORT' },
     orderBy:  { createdAt: 'desc' },
   })
 
