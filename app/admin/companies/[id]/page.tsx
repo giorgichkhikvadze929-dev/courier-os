@@ -70,34 +70,6 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
               </select>
             </div>
 
-            <div className="rounded-xl border border-[var(--color-border)] p-4 bg-[var(--color-bg)]">
-              <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide mb-1">{t('company_billing_title')}</p>
-              <p className="text-xs text-[var(--color-text-muted)] mb-3">{t('company_billing_hint')}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t('company_billing_cycle')}</label>
-                  <select name="billingCycle" defaultValue={company.billingCycle} className="w-full border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-                    <option value="MONTHLY">{t('company_billing_cycle_monthly')}</option>
-                    <option value="WEEKLY">{t('company_billing_cycle_weekly')}</option>
-                    <option value="OFF">{t('company_billing_cycle_off')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text)] mb-1">{t('company_billing_anchor')}</label>
-                  <input name="billingAnchorDay" type="number" min={0} max={28} defaultValue={company.billingAnchorDay} className="w-full border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
-                  <p className="mt-1 text-[11px] text-[var(--color-text-muted)]">
-                    {company.billingCycle === 'WEEKLY' ? t('company_billing_anchor_week') : t('company_billing_anchor_month')}
-                  </p>
-                </div>
-              </div>
-              <p className="mt-3 text-[11px] text-[var(--color-text-muted)]">
-                {t('company_billing_last_auto')}:{' '}
-                <span className="font-mono text-[var(--color-text)]">
-                  {company.lastAutoInvoiceAt ? new Date(company.lastAutoInvoiceAt).toLocaleString() : t('company_billing_never')}
-                </span>
-              </p>
-            </div>
-
             <div className="flex gap-3 pt-2">
               <button type="submit" className="flex-1 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold rounded-xl py-2.5 text-sm transition-colors">
                 {t('user_save_changes')}

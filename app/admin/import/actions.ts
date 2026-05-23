@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { generateTrackingNumber } from '@/lib/tracking'
 import { parseRows, type CanonicalRow } from '@/lib/import'
 import { audit } from '@/lib/audit'
+import { createOrderForBatch } from '@/lib/order'
 
 async function requireAdmin() {
   const session = await auth()
@@ -48,6 +49,24 @@ export async function commitImport(
     existing.map((d) => `${d.customerPhone}::${d.dropoffAddress.toLowerCase()}`)
   )
 
+  // Create the parent Order up-front if we know which company this batch is
+  // for. Admin imports without a chosen company can't be grouped, so we skip
+  // (orderId stays null on those Delivery rows).
+  let orderId: string | null = null
+  let orderNumber: string | null = null
+  if (options.companyId) {
+    const created = await createOrderForBatch({
+      companyId:   options.companyId,
+      parcelCount: 0,    // updated after we know how many committed
+      totalValue:  0,
+      notes:       'Imported by admin',
+    })
+    orderId = created.id
+    orderNumber = created.orderNumber
+  }
+
+  let totalValue = 0
+
   for (const row of parsed.rows) {
     if (row.errors.length > 0) {
       out.failed++
@@ -88,12 +107,14 @@ export async function commitImport(
           codAmount:      d.codAmount ?? null,
           notes:          d.notes ?? null,
           companyId:      options.companyId ?? null,
+          orderId:        orderId,
         },
       })
       await prisma.deliveryHistory.create({
         data: { deliveryId: created.id, status: 'IN_WAREHOUSE', note: 'Imported directly by admin', actorId },
       })
       out.created++
+      totalValue += d.codAmount ?? 0
       existingKeys.add(key)
     } catch (err) {
       out.failed++
@@ -101,13 +122,28 @@ export async function commitImport(
     }
   }
 
+  // Update the Order with the final parcel count + total value snapshot. If
+  // nothing committed (out.created === 0) the order would be empty and
+  // confusing, so delete it.
+  if (orderId) {
+    if (out.created === 0) {
+      await prisma.order.delete({ where: { id: orderId } })
+    } else {
+      await prisma.order.update({
+        where: { id: orderId },
+        data:  { parcelCount: out.created, totalValue },
+      })
+    }
+  }
+
   await audit({
     actorId, action: 'IMPORT', entity: 'Delivery',
-    note: `Imported ${out.created} · skipped ${out.skipped} · failed ${out.failed} · dup ${out.duplicatesInDb}`,
+    note: `Imported ${out.created} · skipped ${out.skipped} · failed ${out.failed} · dup ${out.duplicatesInDb}${orderNumber ? ' · order ' + orderNumber : ''}`,
   })
 
   revalidatePath('/admin/deliveries')
   revalidatePath('/admin')
   revalidatePath('/admin/assign')
+  revalidatePath('/admin/orders')
   return out
 }

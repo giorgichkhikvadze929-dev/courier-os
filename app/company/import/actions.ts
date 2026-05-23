@@ -8,6 +8,7 @@ import { audit } from '@/lib/audit'
 import { parseRows, type CanonicalRow } from '@/lib/import'
 import { notify } from '@/lib/notifications'
 import { generateTrackingNumber } from '@/lib/tracking'
+import { createOrderForBatch } from '@/lib/order'
 
 async function requireCompany() {
   const session = await auth()
@@ -151,6 +152,7 @@ export async function uploadBatch(rowsJson: string, filename: string | null): Pr
       codAmount: number | null
       notes: string | null
       companyId: string | null
+      orderId: string | null
     }[] = []
 
     for (const row of parsed.rows) {
@@ -178,13 +180,33 @@ export async function uploadBatch(rowsJson: string, filename: string | null): Pr
         codAmount:      d.codAmount ?? null,
         notes:          d.notes ?? null,
         companyId,
+        orderId:        null,  // assigned after Order is created below
       })
       existingKeys.add(key)
     }
 
     let created = 0
+    let orderId: string | null = null
+    let orderNumber: string | null = null
     if (deliveriesToCreate.length > 0) {
       try {
+        // Create the parent Order for this upload first so we can stamp
+        // orderId on every Delivery row we insert. Skip Order creation if
+        // there's no companyId (ADMINs without a linked company); deliveries
+        // still get inserted, just unattached to an Order.
+        if (companyId) {
+          const totalValue = deliveriesToCreate.reduce((s, d) => s + (d.codAmount ?? 0), 0)
+          const order = await createOrderForBatch({
+            companyId,
+            parcelCount: deliveriesToCreate.length,
+            totalValue,
+            notes:       filename ? `Imported from ${filename}` : 'Imported by company',
+          })
+          orderId = order.id
+          orderNumber = order.orderNumber
+          for (const d of deliveriesToCreate) d.orderId = orderId
+        }
+
         // 1. Bulk-insert deliveries.
         const result = await prisma.delivery.createMany({ data: deliveriesToCreate })
         created = result.count
@@ -215,6 +237,12 @@ export async function uploadBatch(rowsJson: string, filename: string | null): Pr
           rowNumber: -1,
           reason: `Bulk insert failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
         })
+        // Bulk insert failed — drop the empty Order so it doesn't dangle.
+        if (orderId) {
+          try { await prisma.order.delete({ where: { id: orderId } }) } catch {}
+          orderId = null
+          orderNumber = null
+        }
       }
     }
 
@@ -235,12 +263,20 @@ export async function uploadBatch(rowsJson: string, filename: string | null): Pr
       },
     })
 
+    // Link the Order back to its ImportBatch (1-1) for the audit trail.
+    if (orderId) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data:  { importBatchId: batch.id },
+      })
+    }
+
     await audit({
       actorId: userId,
       action: 'IMPORT',
       entity: 'ImportBatch',
       entityId: batch.id,
-      note: `Company import — ${created} deliveries created · ${duplicatesInDb} dup-in-db · ${parsed.errorRows} validation errors · ${failed} failed`,
+      note: `Company import — ${created} deliveries created · ${duplicatesInDb} dup-in-db · ${parsed.errorRows} validation errors · ${failed} failed${orderNumber ? ' · order ' + orderNumber : ''}`,
     })
 
     // Notify admins so they know there are new parcels in the verify queue.
@@ -256,8 +292,10 @@ export async function uploadBatch(rowsJson: string, filename: string | null): Pr
     }
 
     revalidatePath('/company/import')
+    revalidatePath('/company/orders')
     revalidatePath('/admin/verify')
     revalidatePath('/admin/deliveries')
+    revalidatePath('/admin/orders')
     return {
       batchId: batch.id,
       totalRows: parsed.totalRows,

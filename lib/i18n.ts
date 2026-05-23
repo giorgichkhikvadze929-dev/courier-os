@@ -381,7 +381,7 @@ const DICT = {
   verify_all_confirm: { ge: 'დაადასტურეთ:',                       en: 'Confirm: verify' },
 
   // Invoices
-  nav_invoices:       { ge: 'ინვოისები',                            en: 'Invoices' },
+  nav_orders:         { ge: 'შეკვეთები',                            en: 'Orders' },
   inv_title:          { ge: 'ინვოისები',                            en: 'Invoices' },
   inv_title_one:      { ge: 'ინვოისი',                              en: 'Invoice' },
   inv_subtitle:       { ge: 'სულ ჩანაწერი',                          en: 'total records' },
@@ -555,6 +555,24 @@ const DICT = {
   courier_comment_placeholder:{ ge: 'მოკლე კომენტარი (არჩევითი)…',           en: 'Short comment (optional)…' },
   courier_confirm:           { ge: 'დადასტურება',                            en: 'Confirm' },
   courier_cancel:            { ge: 'გაუქმება',                               en: 'Cancel' },
+
+  // Orders page (replaces the old invoices page)
+  orders_title:              { ge: 'შეკვეთები',                           en: 'Orders' },
+  orders_subtitle:           { ge: 'ყოველი ექსელის ატვირთვა ქმნის ერთ შეკვეთას.', en: 'Every Excel upload creates one order.' },
+  orders_count_one:          { ge: 'შეკვეთა',                              en: 'order' },
+  orders_count_many:         { ge: 'შეკვეთა',                              en: 'orders' },
+  orders_empty:              { ge: 'შეკვეთები ჯერ არ შექმნილა.',          en: 'No orders yet.' },
+  orders_col_number:         { ge: 'ნომერი',                               en: 'Number' },
+  orders_col_company:        { ge: 'კომპანია',                             en: 'Company' },
+  orders_col_parcels:        { ge: 'ამანათები',                             en: 'Parcels' },
+  orders_col_value:          { ge: 'სულ ღირებულება',                       en: 'Total value' },
+  orders_col_date:           { ge: 'თარიღი',                               en: 'Date' },
+  order_detail_title:        { ge: 'შეკვეთა',                              en: 'Order' },
+  order_back_to_list:        { ge: '← შეკვეთები',                          en: '← Orders' },
+  order_parcels_section:     { ge: 'ამანათები ამ შეკვეთაში',                 en: 'Parcels in this order' },
+  order_summary:             { ge: 'შეჯამება',                             en: 'Summary' },
+  order_total_parcels:       { ge: 'ჯამში ამანათი',                        en: 'Total parcels' },
+  order_total_value:         { ge: 'ჯამური ღირებულება',                    en: 'Total value' },
 
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },

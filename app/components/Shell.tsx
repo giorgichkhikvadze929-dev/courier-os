@@ -37,7 +37,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
     { href: '/admin/denied',      labelKey: 'nav_denied',     icon: ICONS.bell },
     { href: '/admin/import',      labelKey: 'nav_import',     icon: ICONS.upload },
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
-    { href: '/admin/invoices',    labelKey: 'nav_invoices',   icon: ICONS.cash },
+    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },
     // Users, Tariffs, Regions (places) — accessed via /admin/settings hub.
     // Inventory removed: not in PRD; pages still exist but unlinked.
@@ -47,7 +47,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
     { href: '/company',           labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
     { href: '/company/parcels',   labelKey: 'nav_my_parcels', icon: ICONS.truck },
     { href: '/company/import',    labelKey: 'nav_upload',     icon: ICONS.upload },
-    { href: '/company/invoices',  labelKey: 'nav_invoices',   icon: ICONS.cash },
+    { href: '/company/orders',    labelKey: 'nav_orders',     icon: ICONS.cash },
   ],
   COURIER: [
     { href: '/courier',           labelKey: 'nav_my_deliveries', icon: ICONS.truck },

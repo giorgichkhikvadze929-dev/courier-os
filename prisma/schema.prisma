@@ -52,21 +52,13 @@ model Company {
   uploadEnabled     Boolean   @default(false)
   uploadRequestedAt DateTime?  // company sets this when requesting access; cleared on decision
 
-  // Automatic invoice cycle (PRD §7 — "automatic invoice generation for companies").
-  // MONTHLY: invoice generated on `billingAnchorDay` of each month, covering the previous month.
-  // WEEKLY:  invoice generated every `billingAnchorDay` (0=Sun … 6=Sat), covering the previous 7 days.
-  // OFF:     no automatic generation; admin generates manually if needed.
-  billingCycle     String   @default("MONTHLY") // MONTHLY | WEEKLY | OFF
-  billingAnchorDay Int      @default(1)         // day-of-month (1-28) for MONTHLY, day-of-week (0-6) for WEEKLY
-  lastAutoInvoiceAt DateTime?                   // set whenever the cron successfully auto-issues; prevents duplicates
-
   createdAt DateTime @default(now())
 
   users      User[]
   deliveries Delivery[]
   tariffs    Tariff[]
   imports    ImportBatch[]
-  invoices   Invoice[]
+  orders     Order[]
 }
 
 // ─── Tariffs (rate per company × zone) ────────────────────────────────────────
@@ -120,6 +112,12 @@ model Delivery {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
+  // Parent order — set on import-commit. Every parcel created by the importer
+  // belongs to exactly one Order (one batch = one order). Nullable so legacy
+  // rows created before this model existed don't break.
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
   // Assignment — delivery courier (warehouse → customer)
   courierId String?
   courier   User?   @relation("CourierDeliveries", fields: [courierId], references: [id])
@@ -152,7 +150,6 @@ model Delivery {
   returnedAt  DateTime?
 
   history DeliveryHistory[]
-  invoiceLineItems InvoiceLineItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -161,6 +158,7 @@ model Delivery {
   @@index([companyId])
   @@index([courierId])
   @@index([pickupCourierId])
+  @@index([orderId])
 }
 
 model DeliveryHistory {
@@ -245,73 +243,36 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-// ─── Invoices ─────────────────────────────────────────────────────────────────
-// An Invoice is the legal/financial document billing a company for delivered
-// parcels. It is generated against a confirmed set of `Delivery` rows (the
-// "orders" in this domain) for a given billing period. Invoices are immutable
-// once issued — status progresses DRAFT → ISSUED → PAID (or CANCELLED).
-//
-// Total = subtotal + tax. Line items are usually one-per-delivery so an admin
-// can audit which parcels are on this bill.
+// ─── Orders ───────────────────────────────────────────────────────────────────
+// An Order represents one Excel batch that a company uploaded — a logical
+// grouping of N parcels. The importer creates exactly one Order per commit
+// and attaches every Delivery row from that file to it. Used as the
+// "business / receipt" view of imports; lives at /admin/orders.
 
-model Invoice {
+model Order {
   id            String   @id @default(cuid())
-  // Human-readable, sequential identifier surfaced to the company (e.g. INV-2026-0001).
-  invoiceNumber String   @unique
+  // Sequential human-readable id, e.g. ORD-2026-0001
+  orderNumber   String   @unique
+
   companyId     String
   company       Company  @relation(fields: [companyId], references: [id])
 
-  // Billing window (inclusive). Used in the UI to label the invoice
-  // "for May 2026" or "for week 21". Either bound may be null for ad-hoc bills.
-  periodStart   DateTime?
-  periodEnd     DateTime?
+  // Optional 1-1 link back to the import batch that created this order.
+  importBatchId String?  @unique
 
-  // DRAFT — admin is editing, not yet sent
-  // ISSUED — emailed/given to the company, awaiting payment
-  // PAID — fully paid
-  // OVERDUE — past dueAt without payment (status set via cron / on view)
-  // CANCELLED — voided
-  status        String   @default("DRAFT")
+  // Snapshot stats at create time. Updated as parcels move through the
+  // lifecycle so the order summary can show real-time progress.
+  parcelCount   Int      @default(0)
+  totalValue    Float    @default(0)   // sum of codAmount across parcels
 
-  subtotal      Float    @default(0)
-  taxRate       Float    @default(0)    // e.g. 0.18 for 18% VAT
-  tax           Float    @default(0)    // computed: subtotal * taxRate
-  total         Float    @default(0)    // computed: subtotal + tax
-
-  issuedAt      DateTime?
-  dueAt         DateTime?
-  paidAt        DateTime?
-  cancelledAt   DateTime?
   notes         String?
-
-  items         InvoiceLineItem[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  deliveries    Delivery[]
+
   @@index([companyId])
-  @@index([status])
-}
-
-model InvoiceLineItem {
-  id          String   @id @default(cuid())
-  invoiceId   String
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
-  // Each line is typically one delivered parcel, but the field is nullable so
-  // an aggregate "Other charges" line can also be supported.
-  deliveryId  String?
-  delivery    Delivery? @relation(fields: [deliveryId], references: [id])
-
-  description String   // e.g. "Delivery TRK-XXXX — Tbilisi / Small"
-  quantity    Int      @default(1)
-  unitPrice   Float
-  amount      Float    // quantity * unitPrice, stored to avoid float drift
-
-  createdAt   DateTime @default(now())
-
-  @@index([invoiceId])
-  @@index([deliveryId])
 }
 
 // ─── Georgian geography (region → municipality → place) ───────────────────────
