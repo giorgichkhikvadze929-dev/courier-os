@@ -168,6 +168,8 @@ model Delivery {
   @@index([pickupCourierId])
   @@index([orderId])
   @@index([assignmentOrderId])
+  // Used by dashboard "delivered today" / per-courier delivered-value queries.
+  @@index([deliveredAt])
 }
 
 model DeliveryHistory {
@@ -250,6 +252,10 @@ model Notification {
   read      Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
+
+  // Hot path: every page in Shell counts unread notifications for the current
+  // user. Without this index Supabase scans the whole table.
+  @@index([userId, read])
 }
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
