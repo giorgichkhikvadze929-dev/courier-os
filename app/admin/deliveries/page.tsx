@@ -4,6 +4,7 @@ import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import BulkPanel from './BulkPanel'
+import SortPicker from './SortPicker'
 import FilterPanel from '@/app/components/FilterPanel'
 import Pagination from '@/app/components/Pagination'
 import ActiveFilterChips, { type Chip } from '@/app/components/ActiveFilterChips'
@@ -19,14 +20,19 @@ const DEFAULT_PAGE_SIZE = 20
 const ACTIVE_STATUSES    = ['RECEIVED', 'IN_WAREHOUSE', 'ASSIGNED', 'IN_TRANSIT'] as const
 const COMPLETED_STATUSES = ['DELIVERED', 'FAILED', 'REFUSED', 'RETURNED'] as const
 
-type SortField = 'trackingNumber' | 'customerName' | 'status' | 'priority' | 'zone' | 'packageType' | 'createdAt'
+type SortField =
+  | 'trackingNumber' | 'customerName' | 'customerPhone'
+  | 'status' | 'priority' | 'zone' | 'packageType'
+  | 'codAmount' | 'createdAt'
 const SORT_FIELDS: Record<SortField, string> = {
   trackingNumber: 'trackingNumber',
   customerName:   'customerName',
+  customerPhone:  'customerPhone',
   status:         'status',
   priority:       'priority',
   zone:           'zone',
   packageType:    'packageType',
+  codAmount:      'codAmount',
   createdAt:      'createdAt',
 }
 
@@ -43,6 +49,7 @@ export default async function AdminDeliveriesPage({
     packageType?: string
     sortBy?: string
     sortDir?: 'asc' | 'desc'
+    sort?: string        // shorthand: "field:dir" — set by the sort dropdown
     page?: string
     pageSize?: string
   }>
@@ -59,8 +66,18 @@ export default async function AdminDeliveriesPage({
   const page = Math.max(1, Number(sp.page) || 1)
   const pageSize = Math.min(250, Math.max(5, Number(sp.pageSize) || DEFAULT_PAGE_SIZE))
 
-  const sortBy: SortField | undefined = sp.sortBy && (sp.sortBy in SORT_FIELDS) ? sp.sortBy as SortField : undefined
-  const sortDir: 'asc' | 'desc' = sp.sortDir === 'asc' ? 'asc' : sp.sortDir === 'desc' ? 'desc' : 'desc'
+  // The compact sort dropdown packs "field:dir" into a single `sort` param —
+  // unpack it here. Fall back to the older sortBy / sortDir pair so older
+  // bookmarks keep working.
+  let rawSortBy = sp.sortBy
+  let rawSortDir: string | undefined = sp.sortDir
+  if (sp.sort && sp.sort.includes(':')) {
+    const [f, d] = sp.sort.split(':')
+    rawSortBy  = f
+    rawSortDir = d
+  }
+  const sortBy: SortField | undefined = rawSortBy && (rawSortBy in SORT_FIELDS) ? rawSortBy as SortField : undefined
+  const sortDir: 'asc' | 'desc' = rawSortDir === 'asc' ? 'asc' : 'desc'
 
   // ── WHERE: scoped to the active or completed bucket ──────────────
   const bucketStatuses = view === 'completed' ? COMPLETED_STATUSES : ACTIVE_STATUSES
@@ -85,10 +102,15 @@ export default async function AdminDeliveriesPage({
   }
 
   // ── ORDER BY ─────────────────────────────────────────────────────
-  // When user clicks a column header, sort by that. Otherwise active uses
+  // When user picks a sort, sort by that. Otherwise active uses
   // [status asc, createdAt desc] and completed uses [updatedAt desc].
+  // For nullable columns (codAmount, zone) push nulls to the end so "highest
+  // value" / "by zone" actually surface meaningful rows first.
+  const NULLABLE_FIELDS = new Set(['codAmount', 'zone', 'packageType'])
   const orderBy = sortBy
-    ? [{ [sortBy]: sortDir }]
+    ? [NULLABLE_FIELDS.has(sortBy)
+        ? { [sortBy]: { sort: sortDir, nulls: 'last' as const } }
+        : { [sortBy]: sortDir }]
     : view === 'completed'
       ? [{ updatedAt: 'desc' as const }]
       : [{ status: 'asc' as const }, { createdAt: 'desc' as const }]
@@ -223,8 +245,6 @@ export default async function AdminDeliveriesPage({
           <input type="hidden" name="view" value={view} />
           <input type="hidden" name="page" value="1" />
           <input type="hidden" name="pageSize" value={String(pageSize)} />
-          {sortBy && <input type="hidden" name="sortBy" value={sortBy} />}
-          {sortBy && <input type="hidden" name="sortDir" value={sortDir} />}
           {/* Preserve column-header filters across the search submit */}
           {status      && <input type="hidden" name="status"      value={status} />}
           {priority    && <input type="hidden" name="priority"    value={priority} />}
@@ -257,6 +277,24 @@ export default async function AdminDeliveriesPage({
           )}
         </form>
       </FilterPanel>
+
+      <div className="flex items-center justify-end gap-3 mb-3">
+        <SortPicker
+          current={sortBy ? `${sortBy}:${sortDir}` : 'createdAt:desc'}
+          labels={{
+            label:     t('sort_label'),
+            newest:    t('sort_newest'),
+            oldest:    t('sort_oldest'),
+            nameAZ:    t('sort_name_az'),
+            nameZA:    t('sort_name_za'),
+            valueHigh: t('sort_value_high'),
+            valueLow:  t('sort_value_low'),
+            status:    t('sort_status'),
+            priority:  t('sort_priority'),
+            zone:      t('sort_zone'),
+          }}
+        />
+      </div>
 
       <BulkPanel
         deliveries={deliveries}

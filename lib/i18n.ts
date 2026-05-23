@@ -556,6 +556,18 @@ const DICT = {
   courier_confirm:           { ge: 'დადასტურება',                            en: 'Confirm' },
   courier_cancel:            { ge: 'გაუქმება',                               en: 'Cancel' },
 
+  // Sort dropdown options on the deliveries list
+  sort_label:                { ge: 'სორტირება',                              en: 'Sort by' },
+  sort_newest:               { ge: 'ახალი ჯერ',                              en: 'Newest first' },
+  sort_oldest:               { ge: 'ძველი ჯერ',                              en: 'Oldest first' },
+  sort_name_az:              { ge: 'სახელი ა–ჰ',                              en: 'Name A–Z' },
+  sort_name_za:              { ge: 'სახელი ჰ–ა',                              en: 'Name Z–A' },
+  sort_value_high:           { ge: 'ფასი — დიდი ჯერ',                          en: 'Highest value' },
+  sort_value_low:            { ge: 'ფასი — პატარა ჯერ',                        en: 'Lowest value' },
+  sort_status:               { ge: 'სტატუსით',                                en: 'By status' },
+  sort_priority:             { ge: 'პრიორიტეტით',                              en: 'By priority' },
+  sort_zone:                 { ge: 'ზონით',                                  en: 'By zone' },
+
   // Orders page (replaces the old invoices page)
   orders_title:              { ge: 'შეკვეთები',                           en: 'Orders' },
   orders_subtitle:           { ge: 'ყოველი ექსელის ატვირთვა ქმნის ერთ შეკვეთას.', en: 'Every Excel upload creates one order.' },
