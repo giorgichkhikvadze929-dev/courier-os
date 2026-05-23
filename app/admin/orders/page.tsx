@@ -13,11 +13,18 @@ import { money } from '@/lib/format'
  *
  * Tab toggle at the top filters between them.
  */
-export default async function AdminOrdersPage() {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ expand?: string }>
+}) {
   const session = await auth()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()
+  const sp = await searchParams
+  const expanded = sp.expand === '1'
+
   // For now the Orders list only surfaces IMPORT orders — the
   // outbound/ASSIGNMENT tab was removed per UX direction. Assignment orders
   // still get created behind the scenes by the bulk-assign action so the data
@@ -32,6 +39,14 @@ export default async function AdminOrdersPage() {
       courier: { select: { id: true, name: true } },
     },
   })
+
+  // Roll-up: by default the page shows ONE line summing every import. The user
+  // clicks it to expand the full list. Date used is the most recent import.
+  const rollup = {
+    count:      orders.length,
+    totalValue: orders.reduce((s, o) => s + o.totalValue, 0),
+    latest:     orders[0]?.createdAt ?? null,
+  }
 
   // For IMPORT orders, fetch the filename from the ImportBatch they came
   // from. Backfilled orders won't have an importBatchId, in which case we
@@ -68,8 +83,38 @@ export default async function AdminOrdersPage() {
         <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-10 text-center">
           <p className="text-[var(--color-text-muted)] text-sm">{t('orders_empty')}</p>
         </div>
+      ) : !expanded ? (
+        // Collapsed view — one summary line. Click to expand the full list.
+        <Link
+          href="/admin/orders?expand=1"
+          className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-5"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-[var(--color-text-strong)]">{t('orders_rollup_title')}</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                {rollup.count} {rollup.count === 1 ? t('orders_count_one') : t('orders_count_many')}
+                {rollup.latest && ` · ${new Date(rollup.latest).toLocaleString()}`}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xl font-bold text-[var(--color-text-strong)] font-mono">{money(rollup.totalValue)}</p>
+              <p className="text-xs text-[var(--color-primary)] mt-1">{t('orders_open_all')}</p>
+            </div>
+          </div>
+        </Link>
       ) : (
         <>
+          {/* Expanded — show the full list. Link back to the collapsed view. */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-[var(--color-text-muted)]">
+              {rollup.count} {rollup.count === 1 ? t('orders_count_one') : t('orders_count_many')} · {money(rollup.totalValue)}
+            </span>
+            <Link href="/admin/orders" className="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">
+              ← {t('orders_collapse')}
+            </Link>
+          </div>
+
           {/* Mobile cards — minimal 3-field layout: file · date · value */}
           <div className="lg:hidden flex flex-col gap-3">
             {orders.map((o) => (
