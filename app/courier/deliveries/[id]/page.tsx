@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -14,7 +15,8 @@ export default async function CourierDeliveryPage({ params }: { params: Promise<
 
   const { t } = await getT()
   const { id } = await params
-  const courierId = (session.user as { id?: string }).id
+  const activeSession = await getActiveSession()
+  const courierId = activeSession?.user.id ?? (session.user as { id?: string }).id
 
   const delivery = await prisma.delivery.findUnique({
     where: { id },

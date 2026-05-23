@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -17,7 +18,10 @@ export default async function CompanyPage() {
 
   const { t, lang } = await getT()
 
-  const companyId = (session.user as { companyId?: string | null }).companyId
+  // Honour impersonation — admin previewing as a company should see THAT
+  // company's data, not the admin's.
+  const activeSession = await getActiveSession()
+  const companyId = activeSession?.user.companyId ?? (session.user as { companyId?: string | null }).companyId
   if (!companyId && role !== 'ADMIN') {
     return (
       <Shell currentPath="/company">

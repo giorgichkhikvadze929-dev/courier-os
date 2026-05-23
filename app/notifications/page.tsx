@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
@@ -19,7 +20,9 @@ export default async function NotificationsPage() {
   if (!session) redirect('/login')
 
   const { t } = await getT()
-  const userId = (session.user as { id?: string }).id!
+  // Honour impersonation — see notifications as the previewed user.
+  const activeSession = await getActiveSession()
+  const userId = activeSession?.user.id ?? (session.user as { id?: string }).id!
 
   const notifications = await prisma.notification.findMany({
     where: { userId },

@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -16,7 +17,9 @@ export default async function CompanyOrdersPage() {
   const role = session.user?.role as string
   if (!['COMPANY', 'ADMIN'].includes(role)) redirect('/login')
 
-  const companyId = (session.user as { companyId?: string | null }).companyId
+  // Honour impersonation.
+  const activeSession = await getActiveSession()
+  const companyId = activeSession?.user.companyId ?? (session.user as { companyId?: string | null }).companyId
   if (!companyId) {
     // ADMIN without a companyId still gets here — show an empty state.
     const { t } = await getT()

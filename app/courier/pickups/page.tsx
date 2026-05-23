@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
@@ -17,7 +18,10 @@ export default async function PickupTasksPage() {
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   const { t } = await getT()
-  const courierId = (session.user as { id?: string }).id
+  // Honour impersonation — admin previewing as a courier should see THAT
+  // courier's pickup tasks, not the admin's.
+  const activeSession = await getActiveSession()
+  const courierId = activeSession?.user.id ?? (session.user as { id?: string }).id
 
   const tasks = await prisma.delivery.findMany({
     where: {

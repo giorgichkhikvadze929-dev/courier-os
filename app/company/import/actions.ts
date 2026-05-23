@@ -9,13 +9,20 @@ import { parseRows, type CanonicalRow } from '@/lib/import'
 import { notify } from '@/lib/notifications'
 import { generateTrackingNumber } from '@/lib/tracking'
 import { createOrderForBatch } from '@/lib/order'
+import { getActiveSession } from '@/lib/impersonation'
 
+/**
+ * Auth gate that surfaces the impersonated user's identity when an admin is
+ * previewing as a company user. Without this, the upload reads the admin's
+ * companyId (null) and bails with "No company linked".
+ */
 async function requireCompany() {
-  const session = await auth()
-  if (!session) redirect('/login')
-  const role = session.user?.role as string
+  const raw = await auth()
+  if (!raw) redirect('/login')
+  const role = raw.user?.role as string
   if (!['COMPANY', 'ADMIN'].includes(role)) redirect('/login')
-  return session
+  const active = await getActiveSession()
+  return active ?? { user: raw.user }
 }
 
 export type CompanyUploadOutcome = {

@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -20,7 +21,8 @@ export default async function CourierHistoryPage({
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   const { t, lang } = await getT()
-  const courierId = (session.user as { id?: string }).id
+  const activeSession = await getActiveSession()
+  const courierId = activeSession?.user.id ?? (session.user as { id?: string }).id
   const sp = await searchParams
   const { status, q } = sp
   const page = Math.max(1, Number(sp.page) || 1)
