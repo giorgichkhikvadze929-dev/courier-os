@@ -556,17 +556,6 @@ const DICT = {
   courier_confirm:           { ge: 'დადასტურება',                            en: 'Confirm' },
   courier_cancel:            { ge: 'გაუქმება',                               en: 'Cancel' },
 
-  // Theme customizer (brand colors)
-  theme_section:             { ge: 'ბრენდის ფერები',                          en: 'Brand colors' },
-  theme_hint:                { ge: 'აარჩიე აპლიკაციის ფერები — შენახული შენი ბრაუზერისთვის.', en: 'Pick the app colors — saved in your browser.' },
-  theme_primary:             { ge: 'ძირითადი',                                en: 'Primary' },
-  theme_success:             { ge: 'წარმატება',                               en: 'Success' },
-  theme_warning:             { ge: 'გაფრთხილება',                             en: 'Warning' },
-  theme_danger:              { ge: 'საფრთხე',                                 en: 'Danger' },
-  theme_save:                { ge: 'შენახვა',                                 en: 'Save' },
-  theme_reset:               { ge: 'სტანდარტული',                             en: 'Reset' },
-  theme_saved:               { ge: 'შენახულია',                               en: 'Saved' },
-
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },
   tariffs_active:        { ge: 'მოქმედი ტარიფები',           en: 'Active rates' },
