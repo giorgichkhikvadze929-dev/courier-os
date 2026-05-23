@@ -57,25 +57,31 @@ export default function InTransitActions({
         </div>
       )}
 
-      <div className="grid grid-cols-3 divide-x divide-[var(--color-border)]">
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => submit('DELIVERED')}
-          className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-success)] hover:bg-green-500 disabled:opacity-60 text-white font-semibold text-sm py-3 transition-colors"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-          {labels.delivered}
-        </button>
+      {/* Primary positive action — filled green, full width above the
+          secondary problem actions. Delivering is the goal of every parcel;
+          give it the visual weight it deserves. */}
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => submit('DELIVERED')}
+        className="w-full inline-flex items-center justify-center gap-2 bg-[var(--color-success)] hover:bg-green-500 disabled:opacity-60 text-white font-semibold text-sm py-3 transition-colors"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+        {labels.delivered}
+      </button>
+
+      {/* Problem outcomes — outlined, secondary weight. They share a row but
+          read as exceptions rather than equals to Delivered. */}
+      <div className="grid grid-cols-2 divide-x divide-[var(--color-border)] border-t border-[var(--color-border)]">
         <button
           type="button"
           disabled={pending}
           onClick={() => submit('FAILED')}
-          className="w-full inline-flex items-center justify-center gap-1.5 bg-[var(--color-danger)] hover:bg-red-500 disabled:opacity-60 text-white font-semibold text-xs py-3 transition-colors"
+          className="w-full inline-flex items-center justify-center gap-1.5 bg-transparent text-[var(--color-danger)] hover:bg-red-500/10 disabled:opacity-60 font-semibold text-xs py-2.5 transition-colors"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" />
           </svg>
           {labels.failed}
@@ -84,9 +90,9 @@ export default function InTransitActions({
           type="button"
           disabled={pending}
           onClick={() => submit('REFUSED')}
-          className="w-full inline-flex items-center justify-center gap-1.5 bg-orange-600 hover:bg-orange-500 disabled:opacity-60 text-white font-semibold text-xs py-3 transition-colors"
+          className="w-full inline-flex items-center justify-center gap-1.5 bg-transparent text-[var(--color-warning)] hover:bg-orange-500/10 disabled:opacity-60 font-semibold text-xs py-2.5 transition-colors"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="10" />
             <path d="M4.93 4.93l14.14 14.14" />
           </svg>

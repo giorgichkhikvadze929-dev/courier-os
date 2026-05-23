@@ -134,7 +134,7 @@ export default async function CourierPage() {
                     <input type="hidden" name="status" value="IN_TRANSIT" />
                     <button
                       type="submit"
-                      className="w-full inline-flex items-center justify-center gap-2 bg-[var(--color-warning)] hover:bg-orange-400 text-white font-semibold text-sm py-3 transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-semibold text-sm py-3 transition-colors"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M1 3h15v13H1zM16 8h4l3 3v5h-7M5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />

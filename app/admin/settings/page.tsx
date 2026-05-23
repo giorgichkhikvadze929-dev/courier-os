@@ -2,6 +2,7 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
+import ThemeCustomizer from '@/app/components/ThemeCustomizer'
 import prisma from '@/lib/prisma'
 import { getT } from '@/lib/i18n-server'
 
@@ -94,6 +95,22 @@ export default async function SettingsPage() {
       <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mt-6">
         <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide mb-3">{t('settings_lang_section')}</p>
         <p className="text-sm text-[var(--color-text)]">{t('settings_lang_hint')}</p>
+      </div>
+
+      <div className="mt-6">
+        <ThemeCustomizer
+          labels={{
+            title:   t('theme_section'),
+            hint:    t('theme_hint'),
+            primary: t('theme_primary'),
+            success: t('theme_success'),
+            warning: t('theme_warning'),
+            danger:  t('theme_danger'),
+            save:    t('theme_save'),
+            reset:   t('theme_reset'),
+            saved:   t('theme_saved'),
+          }}
+        />
       </div>
 
       <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 mt-6">
