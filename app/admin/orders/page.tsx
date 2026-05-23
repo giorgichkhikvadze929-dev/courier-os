@@ -163,11 +163,12 @@ export default async function AdminOrdersPage({
                 </thead>
                 <tbody>
                   {orders.map((o) => (
-                    <tr key={o.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)]">
+                    // Whole-row click via stretched link in the file cell.
+                    <tr key={o.id} className="relative border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)] cursor-pointer">
                       <td className="px-6 py-3">
                         <Link
                           href={`/admin/orders/${o.id}`}
-                          className="font-medium text-[var(--color-text-strong)] hover:text-[var(--color-primary)]"
+                          className="font-medium text-[var(--color-text-strong)] hover:text-[var(--color-primary)] before:absolute before:inset-0 before:content-['']"
                         >
                           {fileLabel(o)}
                         </Link>
@@ -191,13 +192,24 @@ export default async function AdminOrdersPage({
                 </thead>
                 <tbody>
                   {orders.map((o) => (
-                    <tr key={o.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)]">
+                    // The whole row navigates to the order detail. The order
+                    // number cell uses the "stretched link" pattern
+                    // (before:absolute) so a click anywhere in the row goes
+                    // to the order. The courier cell is rendered above that
+                    // stretched area with `relative z-10` so its own link
+                    // (filtered deliveries) still wins when clicked directly.
+                    <tr key={o.id} className="relative border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)] cursor-pointer">
                       <td className="px-6 py-3">
-                        <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-semibold">{o.orderNumber}</Link>
+                        <Link
+                          href={`/admin/orders/${o.id}`}
+                          className="font-mono text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-semibold before:absolute before:inset-0 before:content-['']"
+                        >
+                          {o.orderNumber}
+                        </Link>
                       </td>
-                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">
+                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium relative z-10">
                         {o.courier
-                          ? <Link href={`/admin/deliveries?courier=${o.courier.id}`} className="hover:text-[var(--color-primary)]">{o.courier.name}</Link>
+                          ? <Link href={`/admin/deliveries?courier=${o.courier.id}`} className="hover:text-[var(--color-primary)] hover:underline">{o.courier.name}</Link>
                           : '—'}
                       </td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.parcelCount}</td>
