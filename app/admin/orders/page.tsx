@@ -67,6 +67,43 @@ export default async function AdminOrdersPage({
       || '—'
   }
 
+  // Roll IMPORT orders up by source file. One uploaded Excel can fan out into
+  // many per-company sub-orders (the importer keeps each company's share of
+  // the file as its own Order so /company/orders shows only theirs); the
+  // admin view rolls them back up so we see ONE row per file, not 137.
+  type FileGroup = {
+    label:        string
+    fileKey:      string             // url-safe id used in the row's link
+    parcelCount:  number
+    totalValue:   number
+    latestAt:     Date
+    companies:    Set<string>
+  }
+  const fileGroups: FileGroup[] = (() => {
+    if (type !== 'IMPORT') return []
+    const map = new Map<string, FileGroup>()
+    for (const o of orders) {
+      const label = fileLabel(o)
+      let g = map.get(label)
+      if (!g) {
+        g = {
+          label,
+          fileKey:    encodeURIComponent(label),
+          parcelCount: 0,
+          totalValue:  0,
+          latestAt:    o.createdAt,
+          companies:   new Set<string>(),
+        }
+        map.set(label, g)
+      }
+      g.parcelCount += o.parcelCount
+      g.totalValue  += o.totalValue
+      if (o.createdAt > g.latestAt) g.latestAt = o.createdAt
+      if (o.companyId) g.companies.add(o.companyId)
+    }
+    return [...map.values()].sort((a, b) => b.latestAt.getTime() - a.latestAt.getTime())
+  })()
+
   return (
     <Shell
       currentPath="/admin/orders"
@@ -96,25 +133,25 @@ export default async function AdminOrdersPage({
       ) : (
         <>
 
-          {/* Mobile cards. IMPORT shows file · date · value; ASSIGNMENT shows
-              order # · courier · parcels · value · date. */}
+          {/* Mobile cards. IMPORT shows ONE row per source file (rolled up
+              across the per-company sub-orders); ASSIGNMENT shows one row
+              per courier bundle. */}
           <div className="lg:hidden flex flex-col gap-3">
-            {orders.map((o) => {
-              if (type === 'IMPORT') {
-                return (
-                  <Link
-                    key={o.id}
-                    href={`/admin/orders/${o.id}`}
-                    className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4"
-                  >
-                    <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{fileLabel(o)}</p>
-                    <div className="mt-2 flex items-baseline justify-between gap-3">
-                      <span className="text-xs text-[var(--color-text-muted)]">{new Date(o.createdAt).toLocaleString()}</span>
-                      <span className="text-base font-bold text-[var(--color-text-strong)] font-mono">{money(o.totalValue)}</span>
-                    </div>
-                  </Link>
-                )
-              }
+            {type === 'IMPORT' && fileGroups.map((g) => (
+              <Link
+                key={g.fileKey}
+                href={`/admin/orders/file/${g.fileKey}`}
+                className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4"
+              >
+                <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{g.label}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">{g.companies.size} {t('orders_col_company').toLowerCase()} · {g.parcelCount} {g.parcelCount === 1 ? t('parcel_word') : t('parcel_word_plural')}</p>
+                <div className="mt-2 flex items-baseline justify-between gap-3">
+                  <span className="text-xs text-[var(--color-text-muted)]">{new Date(g.latestAt).toLocaleString()}</span>
+                  <span className="text-base font-bold text-[var(--color-text-strong)] font-mono">{money(g.totalValue)}</span>
+                </div>
+              </Link>
+            ))}
+            {type !== 'IMPORT' && orders.map((o) => {
               // Wrap the card body in a Link to the order, but render the
               // courier name as an inline action (clicking it goes to the
               // filtered deliveries view instead of the order detail).
@@ -157,24 +194,30 @@ export default async function AdminOrdersPage({
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
                     <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_file')}</th>
+                    <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_company')}</th>
+                    <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_parcels')}</th>
                     <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_value')}</th>
                     <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_date')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => (
+                  {fileGroups.map((g) => (
                     // Whole-row click via stretched link in the file cell.
-                    <tr key={o.id} className="relative border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)] cursor-pointer">
+                    // One row per uploaded file, regardless of how many
+                    // company-slices it produced under the hood.
+                    <tr key={g.fileKey} className="relative border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)] cursor-pointer">
                       <td className="px-6 py-3">
                         <Link
-                          href={`/admin/orders/${o.id}`}
+                          href={`/admin/orders/file/${g.fileKey}`}
                           className="font-medium text-[var(--color-text-strong)] hover:text-[var(--color-primary)] before:absolute before:inset-0 before:content-['']"
                         >
-                          {fileLabel(o)}
+                          {g.label}
                         </Link>
                       </td>
-                      <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{money(o.totalValue)}</td>
-                      <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</td>
+                      <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{g.companies.size}</td>
+                      <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{g.parcelCount}</td>
+                      <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{money(g.totalValue)}</td>
+                      <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(g.latestAt).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>

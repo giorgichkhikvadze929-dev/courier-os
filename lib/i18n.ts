@@ -600,6 +600,10 @@ const DICT = {
   order_summary:             { ge: 'შეჯამება',                             en: 'Summary' },
   order_total_parcels:       { ge: 'ჯამში ამანათი',                        en: 'Total parcels' },
   order_total_value:         { ge: 'ჯამური ღირებულება',                    en: 'Total value' },
+  order_file_title:          { ge: 'ფაილი',                                en: 'File' },
+  order_file_subtitle:       { ge: 'ერთი ფაილით ჩატვირთული ამანათები',     en: 'Parcels uploaded in one file' },
+  order_file_companies:      { ge: 'კომპანიების დაყოფა',                   en: 'Per-company breakdown' },
+  order_file_no_orders:      { ge: 'ამ ფაილზე ჩანაწერი ვერ მოიძებნა.',     en: 'No orders found for this file.' },
 
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },
