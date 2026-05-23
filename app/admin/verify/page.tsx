@@ -50,7 +50,7 @@ export default async function VerifyPage({
       title={t('title_verify')}
       subtitle={subtitle}
     >
-      <ReconciliationPanel lang={lang} />
+      <ReconciliationPanel lang={lang} limit={10} />
       <VerifyPanel rows={rows} lang={lang} totalPending={totalPending} />
       <Pagination
         basePath="/admin/verify"

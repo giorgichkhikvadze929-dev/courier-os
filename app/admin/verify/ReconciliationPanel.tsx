@@ -10,7 +10,13 @@ import { type Lang, t as translate, type DictKey } from '@/lib/i18n'
  * Anything still in RECEIVED state after 24h is considered "expected but not arrived"
  * — surfaced here so the admin can chase up the company about a shortfall.
  */
-export default async function ReconciliationPanel({ lang = 'ge' }: { lang?: Lang }) {
+export default async function ReconciliationPanel({
+  lang = 'ge',
+  /** When set, render at most this many rows + a "Show more →" link to the
+   *  dedicated full-list page. When undefined, render every row (used by the
+   *  /admin/verify/companies subpage). */
+  limit,
+}: { lang?: Lang; limit?: number }) {
   const t = (k: DictKey) => translate(k, lang)
 
   // 30-day reconciliation window is wide enough to surface stuck batches that
@@ -86,8 +92,20 @@ export default async function ReconciliationPanel({ lang = 'ge' }: { lang?: Lang
     }
   })
 
-  const withActivity = stats.filter((s) => s.total > 0)
+  // Companies with activity, sorted: anything flagged (stale or
+  // discrepancies) bubbles to the top, then most parcels first.
+  const withActivity = stats
+    .filter((s) => s.total > 0)
+    .sort((a, b) => {
+      const flagA = (a.stale > 0 || a.discrepancies > 0) ? 1 : 0
+      const flagB = (b.stale > 0 || b.discrepancies > 0) ? 1 : 0
+      if (flagA !== flagB) return flagB - flagA
+      return b.total - a.total
+    })
   if (withActivity.length === 0) return null
+
+  const truncated = typeof limit === 'number' && withActivity.length > limit
+  const shown = truncated ? withActivity.slice(0, limit) : withActivity
 
   return (
     <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden mb-4">
@@ -107,7 +125,7 @@ export default async function ReconciliationPanel({ lang = 'ge' }: { lang?: Lang
           </tr>
         </thead>
         <tbody>
-          {withActivity.map((s) => {
+          {shown.map((s) => {
             const flag = s.stale > 0 || s.discrepancies > 0
             return (
               <tr key={s.id} className={`border-b border-[var(--color-border)] last:border-0 ${flag ? 'bg-yellow-500/5' : ''}`}>
@@ -128,6 +146,19 @@ export default async function ReconciliationPanel({ lang = 'ge' }: { lang?: Lang
           })}
         </tbody>
       </table>
+      {truncated && (
+        <div className="px-6 py-3 border-t border-[var(--color-border)] flex items-center justify-between gap-3">
+          <span className="text-xs text-[var(--color-text-muted)]">
+            {t('reconcile_showing')} {shown.length} / {withActivity.length}
+          </span>
+          <Link
+            href="/admin/verify/companies"
+            className="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
+          >
+            {t('reconcile_show_more')} →
+          </Link>
+        </div>
+      )}
       <div className="px-6 py-2 border-t border-[var(--color-border)] bg-[var(--color-card-hover)]/40">
         <p className="text-[10px] text-[var(--color-text-muted)]">{t('reconcile_legend')}</p>
       </div>
