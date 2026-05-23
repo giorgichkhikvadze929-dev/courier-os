@@ -51,6 +51,9 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   ],
   COURIER: [
     { href: '/courier',           labelKey: 'nav_my_deliveries', icon: ICONS.truck },
+    // Courier sees their ASSIGNMENT orders here — every bundle of 2+ parcels
+    // they've been given as one batch.
+    { href: '/courier/orders',    labelKey: 'nav_orders',        icon: ICONS.cash },
     { href: '/courier/pickups',   labelKey: 'nav_pickups',       icon: ICONS.upload },
     { href: '/courier/history',   labelKey: 'nav_history',       icon: ICONS.chart },
   ],

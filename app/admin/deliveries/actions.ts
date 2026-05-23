@@ -72,14 +72,8 @@ export async function assignSingle(deliveryId: string, formData: FormData): Prom
   if (!['IN_WAREHOUSE', 'RECEIVED', 'ASSIGNED'].includes(before.status)) return
   await prisma.delivery.update({ where: { id: deliveryId }, data: { courierId, status: 'ASSIGNED' } })
   await prisma.deliveryHistory.create({ data: { deliveryId, status: 'ASSIGNED', note: 'Assigned by admin', actorId } })
-  // One-parcel assignment still gets its own ASSIGNMENT order so the audit /
-  // courier-side history stays consistent with the bulk path.
-  const { createAssignmentOrder } = await import('@/lib/order')
-  await createAssignmentOrder({
-    courierId,
-    deliveryIds: [deliveryId],
-    notes: 'Single assignment by admin',
-  })
+  // No assignment order for single-parcel assignments — an order is a bundle
+  // of two or more parcels by definition. The bulk-assign path handles that.
   await notify(courierId, 'New delivery assigned', `Delivery ${before.trackingNumber} has been assigned to you.`, 'INFO', `/courier/deliveries/${deliveryId}`)
   await audit({ actorId, action: 'ASSIGN', entity: 'Delivery', entityId: deliveryId, before: { courierId: before.courierId, status: before.status }, after: { courierId, status: 'ASSIGNED' } })
   revalidatePath(`/admin/deliveries/${deliveryId}`)
@@ -162,10 +156,10 @@ export async function bulkAssignToCourier(ids: string[], courierId: string): Pro
     }
   }
 
-  // Group the successfully-assigned parcels into a new ASSIGNMENT order so
-  // the bundle is tracked as one delivery batch (matches the way orders are
-  // grouped for imports).
-  if (assignedIds.length > 0) {
+  // Group the successfully-assigned parcels into a new ASSIGNMENT order — but
+  // only when 2+ parcels were given in the same action. A single-parcel
+  // assignment isn't an "order" in the business sense (an order = a bundle).
+  if (assignedIds.length >= 2) {
     const { createAssignmentOrder } = await import('@/lib/order')
     const order = await createAssignmentOrder({
       courierId,
