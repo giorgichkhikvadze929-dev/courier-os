@@ -47,33 +47,47 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Parcels — 2/3 of the width */}
         <div className="lg:col-span-2 bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
-          <div className="px-6 py-3 border-b border-[var(--color-border)]">
-            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('order_parcels_section')} ({deliveries.length})</p>
+          <div className="px-6 py-3 border-b border-[var(--color-border)] flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('order_parcels_section')} ({order.parcelCount})</p>
+            {order.parcelCount > deliveries.length && (
+              <p className="text-[10px] text-[var(--color-text-faint)]">Showing first {deliveries.length}</p>
+            )}
           </div>
           {deliveries.length === 0 ? (
             <p className="px-6 py-8 text-sm text-[var(--color-text-muted)] text-center">{t('orders_empty')}</p>
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
-              {deliveries.map((d) => (
-                <li key={d.id}>
-                  <Link href={`/admin/deliveries/${d.id}`} className="flex items-center gap-3 px-6 py-3 hover:bg-[var(--color-card-hover)] transition-colors">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{d.trackingNumber}</p>
-                      <p className="text-sm text-[var(--color-text-strong)] truncate">{d.customerName}</p>
-                      <p className="text-xs text-[var(--color-text-muted)] truncate">
-                        {d.dropoffAddress}
-                        {d.courier?.name && ` · ${d.courier.name}`}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 text-right">
-                      <StatusBadge status={d.status} lang={lang} />
-                      {d.codAmount != null && d.codAmount > 0 && (
-                        <p className="text-xs font-mono text-[var(--color-text)] mt-1">{money(d.codAmount)}</p>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              ))}
+              {deliveries.map((d) => {
+                // On ASSIGNMENT orders we eager-load each parcel's source
+                // import order so the bundle view shows where each parcel
+                // came from.
+                const sourceImport = !isImport && 'order' in d ? (d as typeof d & { order: { id: string; orderNumber: string } | null }).order : null
+                return (
+                  <li key={d.id}>
+                    <Link href={`/admin/deliveries/${d.id}`} className="flex items-center gap-3 px-6 py-3 hover:bg-[var(--color-card-hover)] transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{d.trackingNumber}</p>
+                        <p className="text-sm text-[var(--color-text-strong)] truncate">{d.customerName}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] truncate">
+                          {d.dropoffAddress}
+                          {d.courier?.name && ` · ${d.courier.name}`}
+                        </p>
+                        {sourceImport && (
+                          <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">
+                            {t('order_from_imports')}: <span className="font-mono text-[var(--color-primary)]">{sourceImport.orderNumber}</span>
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <StatusBadge status={d.status} lang={lang} />
+                        {d.codAmount != null && d.codAmount > 0 && (
+                          <p className="text-xs font-mono text-[var(--color-text)] mt-1">{money(d.codAmount)}</p>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
@@ -113,6 +127,9 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 // Inline helpers to keep the Prisma include block readable.
 function order_type_is_import_only_filter() {
   return {
+    // Cap to first 200; very large imports (6k+ parcels) shouldn't render
+    // every row in the order detail — they get linked to the deliveries list.
+    take:    200,
     orderBy: { createdAt: 'asc' as const },
     include: { courier: { select: { name: true } } },
   }
@@ -120,6 +137,11 @@ function order_type_is_import_only_filter() {
 function order_type_is_assignment_only_filter() {
   return {
     orderBy: { createdAt: 'asc' as const },
-    include: { courier: { select: { name: true } } },
+    include: {
+      courier: { select: { name: true } },
+      // The IMPORT order this parcel originally came in on — surfaces
+      // "delivered together, came from this file" cross-reference.
+      order:   { select: { id: true, orderNumber: true, notes: true } },
+    },
   }
 }

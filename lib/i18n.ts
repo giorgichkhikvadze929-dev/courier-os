@@ -582,6 +582,8 @@ const DICT = {
   orders_col_courier:        { ge: 'კურიერი',                              en: 'Courier' },
   orders_tab_import:         { ge: 'შემოსული (იმპორტი)',                   en: 'Inbound (Import)' },
   orders_tab_assignment:     { ge: 'გასული (კურიერთან)',                    en: 'Outbound (Assigned)' },
+  orders_col_file:           { ge: 'ფაილი',                                 en: 'File' },
+  order_from_imports:        { ge: 'წყარო იმპორტი',                          en: 'From import' },
   order_detail_title:        { ge: 'შეკვეთა',                              en: 'Order' },
   order_back_to_list:        { ge: '← შეკვეთები',                          en: '← Orders' },
   order_parcels_section:     { ge: 'ამანათები ამ შეკვეთაში',                 en: 'Parcels in this order' },

@@ -38,6 +38,31 @@ export default async function AdminOrdersPage({
     prisma.order.count({ where: { type: 'ASSIGNMENT' } }),
   ])
 
+  // For IMPORT orders, fetch the filename from the ImportBatch they came
+  // from. Backfilled orders won't have an importBatchId, in which case we
+  // fall back to whatever text we wrote into `notes` at backfill time
+  // (typically the original date string from the spreadsheet).
+  const filenameById = new Map<string, string | null>()
+  if (type === 'IMPORT') {
+    const batchIds = orders.map((o) => o.importBatchId).filter((x): x is string => !!x)
+    if (batchIds.length > 0) {
+      const rows = await prisma.importBatch.findMany({
+        where:  { id: { in: batchIds } },
+        select: { id: true, filename: true },
+      })
+      for (const r of rows) filenameById.set(r.id, r.filename)
+    }
+  }
+
+  function fileLabel(o: typeof orders[number]): string {
+    if (o.importBatchId && filenameById.has(o.importBatchId)) {
+      const fn = filenameById.get(o.importBatchId)
+      if (fn) return fn
+    }
+    // Fall back to notes — strip the "Backfilled — " prefix for cleanliness.
+    return (o.notes ?? '').replace(/^Backfilled\s*[—-]\s*/, '') || '—'
+  }
+
   return (
     <Shell
       currentPath="/admin/orders"
@@ -69,8 +94,8 @@ export default async function AdminOrdersPage({
           {/* Mobile cards */}
           <div className="lg:hidden flex flex-col gap-3">
             {orders.map((o) => {
-              // Second-line label: company name for IMPORT, courier name for ASSIGNMENT.
               const subject = type === 'IMPORT' ? (o.company?.name ?? '—') : (o.courier?.name ?? '—')
+              const file    = type === 'IMPORT' ? fileLabel(o) : null
               return (
                 <Link
                   key={o.id}
@@ -81,7 +106,10 @@ export default async function AdminOrdersPage({
                     <div className="min-w-0 flex-1">
                       <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{o.orderNumber}</p>
                       <p className="text-sm font-medium text-[var(--color-text-strong)] mt-0.5 truncate">{subject}</p>
-                      <p className="text-xs text-[var(--color-text-muted)] mt-1">{new Date(o.createdAt).toLocaleString()}</p>
+                      {file && file !== '—' && (
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">{file}</p>
+                      )}
+                      <p className="text-xs text-[var(--color-text-faint)] mt-1">{new Date(o.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-faint)]">{t('orders_col_parcels')}</p>
@@ -105,6 +133,9 @@ export default async function AdminOrdersPage({
                   <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">
                     {type === 'IMPORT' ? t('orders_col_company') : t('orders_col_courier')}
                   </th>
+                  {type === 'IMPORT' && (
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_file')}</th>
+                  )}
                   <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_parcels')}</th>
                   <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_value')}</th>
                   <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_date')}</th>
@@ -119,6 +150,9 @@ export default async function AdminOrdersPage({
                         <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-semibold">{o.orderNumber}</Link>
                       </td>
                       <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">{subject}</td>
+                      {type === 'IMPORT' && (
+                        <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs truncate max-w-[260px]">{fileLabel(o)}</td>
+                      )}
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.parcelCount}</td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.totalValue > 0 ? money(o.totalValue) : '—'}</td>
                       <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</td>
