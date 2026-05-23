@@ -160,27 +160,37 @@ export default async function AdminOrdersPage({
                   </Link>
                 )
               }
+              // Wrap the card body in a Link to the order, but render the
+              // courier name as an inline action (clicking it goes to the
+              // filtered deliveries view instead of the order detail).
               return (
-                <Link
-                  key={o.id}
-                  href={`/admin/orders/${o.id}`}
-                  className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{o.orderNumber}</p>
-                      <p className="text-sm font-medium text-[var(--color-text-strong)] mt-0.5 truncate">{o.courier?.name ?? '—'}</p>
-                      <p className="text-xs text-[var(--color-text-faint)] mt-1">{new Date(o.createdAt).toLocaleString()}</p>
+                <div key={o.id} className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors">
+                  <Link href={`/admin/orders/${o.id}`} className="block p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{o.orderNumber}</p>
+                        <p className="text-xs text-[var(--color-text-faint)] mt-1">{new Date(o.createdAt).toLocaleString()}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-faint)]">{t('orders_col_parcels')}</p>
+                        <p className="text-lg font-bold text-[var(--color-text-strong)]">{o.parcelCount}</p>
+                        {o.totalValue > 0 && (
+                          <p className="text-xs text-[var(--color-text-muted)] font-mono mt-0.5">{money(o.totalValue)}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-faint)]">{t('orders_col_parcels')}</p>
-                      <p className="text-lg font-bold text-[var(--color-text-strong)]">{o.parcelCount}</p>
-                      {o.totalValue > 0 && (
-                        <p className="text-xs text-[var(--color-text-muted)] font-mono mt-0.5">{money(o.totalValue)}</p>
-                      )}
+                  </Link>
+                  {o.courier && (
+                    <div className="border-t border-[var(--color-border)] px-4 py-2">
+                      <Link
+                        href={`/admin/deliveries?courier=${o.courier.id}`}
+                        className="text-sm text-[var(--color-text-strong)] hover:text-[var(--color-primary)]"
+                      >
+                        {o.courier.name} →
+                      </Link>
                     </div>
-                  </div>
-                </Link>
+                  )}
+                </div>
               )
             })}
           </div>
@@ -230,7 +240,11 @@ export default async function AdminOrdersPage({
                       <td className="px-6 py-3">
                         <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-semibold">{o.orderNumber}</Link>
                       </td>
-                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">{o.courier?.name ?? '—'}</td>
+                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">
+                        {o.courier
+                          ? <Link href={`/admin/deliveries?courier=${o.courier.id}`} className="hover:text-[var(--color-primary)]">{o.courier.name}</Link>
+                          : '—'}
+                      </td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.parcelCount}</td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.totalValue > 0 ? money(o.totalValue) : '—'}</td>
                       <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</td>
