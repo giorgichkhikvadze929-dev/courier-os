@@ -31,10 +31,13 @@ const ICONS: Record<string, ReactNode> = {
 const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
-    // Primary entry: grouped orders (imports + courier assignments).
-    // Individual parcels live one click deeper inside an order — the old
-    // /admin/deliveries scattered view is no longer in the sidebar.
-    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.truck },
+    // Two related entries now distinguished by label:
+    //   "შეკვეთები" (Orders) — grouped: imports + courier assignments.
+    //   "ამანათები" (Parcels) — flat list of every individual parcel.
+    // Both exist; they used to share the same Georgian label which was the
+    // source of confusion.
+    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
+    { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
     { href: '/admin/verify',      labelKey: 'nav_verify',     icon: ICONS.pkg },
     { href: '/admin/assign',      labelKey: 'nav_assign',     icon: ICONS.route },
     { href: '/admin/denied',      labelKey: 'nav_denied',     icon: ICONS.bell },
@@ -47,10 +50,8 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   ],
   COMPANY: [
     { href: '/company',           labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
-    // Same logic on the company side — orders is the entry, parcels live
-    // inside an order. The standalone /company/parcels list is no longer
-    // surfaced in the sidebar.
-    { href: '/company/orders',    labelKey: 'nav_orders',     icon: ICONS.truck },
+    { href: '/company/orders',    labelKey: 'nav_orders',     icon: ICONS.cash },
+    { href: '/company/parcels',   labelKey: 'nav_my_parcels', icon: ICONS.truck },
     { href: '/company/import',    labelKey: 'nav_upload',     icon: ICONS.upload },
   ],
   COURIER: [
