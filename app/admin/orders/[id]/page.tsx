@@ -5,37 +5,96 @@ import Shell from '@/app/components/Shell'
 import prisma from '@/lib/prisma'
 import { getT } from '@/lib/i18n-server'
 import { StatusBadge } from '@/app/components/StatusBadge'
+import Pagination from '@/app/components/Pagination'
+import SortPicker from '../../deliveries/SortPicker'
 import { money } from '@/lib/format'
 
 /**
- * Admin Order detail. Works for both order types:
- *   IMPORT      — pulls parcels via the `importDeliveries` relation
- *                 (Delivery.orderId).
- *   ASSIGNMENT  — pulls parcels via `assignmentDeliveries`
- *                 (Delivery.assignmentOrderId).
- * The right list is loaded conditionally so we don't waste a query.
+ * Admin Order detail with the same organization patterns as /admin/deliveries:
+ *   - Paginated parcel list (50 per page)
+ *   - Sort dropdown above the list
+ *   - Status filter row
+ *
+ * Works for both IMPORT and ASSIGNMENT orders. The right relation is queried
+ * via Delivery.orderId vs Delivery.assignmentOrderId.
  */
-export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+
+type SortField = 'createdAt' | 'customerName' | 'status' | 'codAmount'
+const SORT_FIELDS: Record<SortField, boolean> = {
+  createdAt: true, customerName: true, status: true, codAmount: true,
+}
+const PAGE_SIZE_DEFAULT = 50
+
+export default async function AdminOrderDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ page?: string; pageSize?: string; sort?: string; status?: string }>
+}) {
   const session = await auth()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()
   const { id } = await params
+  const sp = await searchParams
 
+  // Sort param packs "field:dir" — same shape as the deliveries page.
+  let sortBy: SortField = 'createdAt'
+  let sortDir: 'asc' | 'desc' = 'asc'
+  if (sp.sort && sp.sort.includes(':')) {
+    const [f, d] = sp.sort.split(':')
+    if (f in SORT_FIELDS) sortBy = f as SortField
+    sortDir = d === 'desc' ? 'desc' : 'asc'
+  }
+  const page = Math.max(1, Number(sp.page) || 1)
+  const pageSize = Math.min(250, Math.max(10, Number(sp.pageSize) || PAGE_SIZE_DEFAULT))
+  const statusFilter = sp.status || null
+
+  // Fetch the order header.
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
       company: { select: { id: true, name: true } },
       courier: { select: { id: true, name: true } },
-      importDeliveries: order_type_is_import_only_filter(),
-      assignmentDeliveries: order_type_is_assignment_only_filter(),
     },
   })
   if (!order) notFound()
 
   const isImport = order.type === 'IMPORT'
-  const deliveries = isImport ? order.importDeliveries : order.assignmentDeliveries
-  const subject    = isImport ? (order.company?.name ?? '—') : (order.courier?.name ?? '—')
+  const subject  = isImport ? (order.company?.name ?? '—') : (order.courier?.name ?? '—')
+
+  // Build the parcels query — same filter shape regardless of order type;
+  // we just swap which FK the deliveries are linked through.
+  const where = {
+    ...(isImport ? { orderId: id } : { assignmentOrderId: id }),
+    ...(statusFilter ? { status: statusFilter } : {}),
+  }
+
+  const orderBy = sortBy === 'codAmount'
+    ? [{ codAmount: { sort: sortDir, nulls: 'last' as const } }]
+    : [{ [sortBy]: sortDir }]
+
+  const [deliveries, total] = await Promise.all([
+    prisma.delivery.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        courier: { select: { name: true } },
+        // Source IMPORT order — only meaningful for ASSIGNMENT parcels.
+        ...(isImport ? {} : { order: { select: { id: true, orderNumber: true } } }),
+      },
+    }),
+    prisma.delivery.count({ where }),
+  ])
+
+  // Build a base href that preserves filters / sort for the pagination links.
+  const baseQuery: Record<string, string> = {}
+  if (sp.sort)   baseQuery.sort   = sp.sort
+  if (statusFilter) baseQuery.status = statusFilter
+  if (sp.pageSize) baseQuery.pageSize = sp.pageSize
 
   return (
     <Shell
@@ -46,49 +105,86 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Parcels — 2/3 of the width */}
-        <div className="lg:col-span-2 bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
-          <div className="px-6 py-3 border-b border-[var(--color-border)] flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide">{t('order_parcels_section')} ({order.parcelCount})</p>
-            {order.parcelCount > deliveries.length && (
-              <p className="text-[10px] text-[var(--color-text-faint)]">Showing first {deliveries.length}</p>
+        <div className="lg:col-span-2">
+          {/* Sort + count row */}
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+            <span className="text-xs text-[var(--color-text-muted)]">
+              {t('order_parcels_section')} ({total}{total !== order.parcelCount && ` / ${order.parcelCount}`})
+            </span>
+            <SortPicker
+              current={`${sortBy}:${sortDir}`}
+              labels={{
+                label:     t('sort_label'),
+                newest:    t('sort_newest'),
+                oldest:    t('sort_oldest'),
+                nameAZ:    t('sort_name_az'),
+                nameZA:    t('sort_name_za'),
+                valueHigh: t('sort_value_high'),
+                valueLow:  t('sort_value_low'),
+                status:    t('sort_status'),
+                priority:  t('sort_priority'),
+                zone:      t('sort_zone'),
+              }}
+            />
+          </div>
+
+          {/* Parcels list */}
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
+            {deliveries.length === 0 ? (
+              <p className="px-6 py-8 text-sm text-[var(--color-text-muted)] text-center">{t('orders_empty')}</p>
+            ) : (
+              <ul className="divide-y divide-[var(--color-border)]">
+                {deliveries.map((d) => {
+                  const sourceImport = !isImport && 'order' in d
+                    ? (d as typeof d & { order: { id: string; orderNumber: string } | null }).order
+                    : null
+                  return (
+                    <li key={d.id}>
+                      <Link href={`/admin/deliveries/${d.id}`} className="flex items-center gap-3 px-6 py-3 hover:bg-[var(--color-card-hover)] transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{d.trackingNumber}</p>
+                          <p className="text-sm text-[var(--color-text-strong)] truncate">{d.customerName}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] truncate">
+                            {d.dropoffAddress}
+                            {d.courier?.name && ` · ${d.courier.name}`}
+                          </p>
+                          {sourceImport && (
+                            <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">
+                              {t('order_from_imports')}: <span className="font-mono text-[var(--color-primary)]">{sourceImport.orderNumber}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <StatusBadge status={d.status} lang={lang} />
+                          {d.codAmount != null && d.codAmount > 0 && (
+                            <p className="text-xs font-mono text-[var(--color-text)] mt-1">{money(d.codAmount)}</p>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
             )}
           </div>
-          {deliveries.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-[var(--color-text-muted)] text-center">{t('orders_empty')}</p>
-          ) : (
-            <ul className="divide-y divide-[var(--color-border)]">
-              {deliveries.map((d) => {
-                // On ASSIGNMENT orders we eager-load each parcel's source
-                // import order so the bundle view shows where each parcel
-                // came from.
-                const sourceImport = !isImport && 'order' in d ? (d as typeof d & { order: { id: string; orderNumber: string } | null }).order : null
-                return (
-                  <li key={d.id}>
-                    <Link href={`/admin/deliveries/${d.id}`} className="flex items-center gap-3 px-6 py-3 hover:bg-[var(--color-card-hover)] transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{d.trackingNumber}</p>
-                        <p className="text-sm text-[var(--color-text-strong)] truncate">{d.customerName}</p>
-                        <p className="text-xs text-[var(--color-text-muted)] truncate">
-                          {d.dropoffAddress}
-                          {d.courier?.name && ` · ${d.courier.name}`}
-                        </p>
-                        {sourceImport && (
-                          <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">
-                            {t('order_from_imports')}: <span className="font-mono text-[var(--color-primary)]">{sourceImport.orderNumber}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex-shrink-0 text-right">
-                        <StatusBadge status={d.status} lang={lang} />
-                        {d.codAmount != null && d.codAmount > 0 && (
-                          <p className="text-xs font-mono text-[var(--color-text)] mt-1">{money(d.codAmount)}</p>
-                        )}
-                      </div>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
+
+          {/* Pagination */}
+          {total > pageSize && (
+            <Pagination
+              basePath={`/admin/orders/${id}`}
+              query={baseQuery}
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              labels={{
+                prev: t('page_prev'),
+                next: t('page_next'),
+                page: t('page_label'),
+                of:   t('page_of'),
+                perPage: t('page_per_page'),
+                showing: t('page_showing'),
+              }}
+            />
           )}
         </div>
 
@@ -122,26 +218,4 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       </div>
     </Shell>
   )
-}
-
-// Inline helpers to keep the Prisma include block readable.
-function order_type_is_import_only_filter() {
-  return {
-    // Cap to first 200; very large imports (6k+ parcels) shouldn't render
-    // every row in the order detail — they get linked to the deliveries list.
-    take:    200,
-    orderBy: { createdAt: 'asc' as const },
-    include: { courier: { select: { name: true } } },
-  }
-}
-function order_type_is_assignment_only_filter() {
-  return {
-    orderBy: { createdAt: 'asc' as const },
-    include: {
-      courier: { select: { name: true } },
-      // The IMPORT order this parcel originally came in on — surfaces
-      // "delivered together, came from this file" cross-reference.
-      order:   { select: { id: true, orderNumber: true, notes: true } },
-    },
-  }
 }
