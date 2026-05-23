@@ -91,11 +91,26 @@ export default async function AdminOrdersPage({
         </div>
       ) : (
         <>
-          {/* Mobile cards */}
+          {/* Mobile cards — minimal 3-field layout for IMPORT
+              (file · value · date); ASSIGNMENT keeps the courier subject. */}
           <div className="lg:hidden flex flex-col gap-3">
             {orders.map((o) => {
-              const subject = type === 'IMPORT' ? (o.company?.name ?? '—') : (o.courier?.name ?? '—')
-              const file    = type === 'IMPORT' ? fileLabel(o) : null
+              if (type === 'IMPORT') {
+                return (
+                  <Link
+                    key={o.id}
+                    href={`/admin/orders/${o.id}`}
+                    className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4"
+                  >
+                    <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{fileLabel(o)}</p>
+                    <div className="mt-2 flex items-baseline justify-between gap-3">
+                      <span className="text-xs text-[var(--color-text-muted)]">{new Date(o.createdAt).toLocaleString()}</span>
+                      <span className="text-base font-bold text-[var(--color-text-strong)] font-mono">{money(o.totalValue)}</span>
+                    </div>
+                  </Link>
+                )
+              }
+              const subject = o.courier?.name ?? '—'
               return (
                 <Link
                   key={o.id}
@@ -106,9 +121,6 @@ export default async function AdminOrdersPage({
                     <div className="min-w-0 flex-1">
                       <p className="font-mono text-xs text-[var(--color-primary)] font-semibold">{o.orderNumber}</p>
                       <p className="text-sm font-medium text-[var(--color-text-strong)] mt-0.5 truncate">{subject}</p>
-                      {file && file !== '—' && (
-                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">{file}</p>
-                      )}
                       <p className="text-xs text-[var(--color-text-faint)] mt-1">{new Date(o.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
@@ -124,43 +136,61 @@ export default async function AdminOrdersPage({
             })}
           </div>
 
-          {/* Desktop table */}
+          {/* Desktop table — IMPORT view shows only file · value · date;
+              ASSIGNMENT keeps the courier + parcel-count columns. */}
           <div className="hidden lg:block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-border)]">
-                  <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_number')}</th>
-                  <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">
-                    {type === 'IMPORT' ? t('orders_col_company') : t('orders_col_courier')}
-                  </th>
-                  {type === 'IMPORT' && (
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_file')}</th>
-                  )}
-                  <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_parcels')}</th>
-                  <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_value')}</th>
-                  <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_date')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => {
-                  const subject = type === 'IMPORT' ? (o.company?.name ?? '—') : (o.courier?.name ?? '—')
-                  return (
+            {type === 'IMPORT' ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_file')}</th>
+                    <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_value')}</th>
+                    <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_date')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o) => (
+                    <tr key={o.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)]">
+                      <td className="px-6 py-3">
+                        <Link
+                          href={`/admin/orders/${o.id}`}
+                          className="font-medium text-[var(--color-text-strong)] hover:text-[var(--color-primary)]"
+                        >
+                          {fileLabel(o)}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{money(o.totalValue)}</td>
+                      <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_number')}</th>
+                    <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_courier')}</th>
+                    <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_parcels')}</th>
+                    <th className="text-right px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_value')}</th>
+                    <th className="text-left  px-6 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('orders_col_date')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o) => (
                     <tr key={o.id} className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-card-hover)]">
                       <td className="px-6 py-3">
                         <Link href={`/admin/orders/${o.id}`} className="font-mono text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-semibold">{o.orderNumber}</Link>
                       </td>
-                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">{subject}</td>
-                      {type === 'IMPORT' && (
-                        <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs truncate max-w-[260px]">{fileLabel(o)}</td>
-                      )}
+                      <td className="px-6 py-3 text-[var(--color-text-strong)] font-medium">{o.courier?.name ?? '—'}</td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.parcelCount}</td>
                       <td className="px-6 py-3 text-right text-[var(--color-text-strong)] font-mono">{o.totalValue > 0 ? money(o.totalValue) : '—'}</td>
                       <td className="px-6 py-3 text-[var(--color-text-muted)] text-xs">{new Date(o.createdAt).toLocaleString()}</td>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </>
       )}
