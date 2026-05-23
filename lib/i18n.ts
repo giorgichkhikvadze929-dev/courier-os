@@ -548,6 +548,7 @@ const DICT = {
   settings_regions_title:    { ge: 'რეგიონები',                             en: 'Regions' },
   settings_regions_hint:     { ge: 'საქართველოს რეგიონები, ქალაქები, საფოსტო კოდები', en: 'Georgian regions, cities, postal codes' },
   settings_open:             { ge: 'გახსნა →',                              en: 'Open →' },
+  back_to_settings:          { ge: '← პარამეტრები',                        en: '← Settings' },
 
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },

@@ -115,7 +115,8 @@ export default async function UsersPage({
 
   return (
     <Shell
-      currentPath="/admin/users"
+      currentPath="/admin/settings"
+      breadcrumb={{ href: '/admin/settings', label: t('back_to_settings') }}
       title={t('title_users')}
       subtitle={`${total.toLocaleString()} ${t('users_count')}`}
       actions={

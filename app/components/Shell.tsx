@@ -58,6 +58,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
 
 export default async function Shell({
   currentPath,
+  breadcrumb,
   title,
   subtitle,
   search,
@@ -65,6 +66,9 @@ export default async function Shell({
   children,
 }: {
   currentPath?: string
+  // Optional back-link rendered above the page title — used for nested pages
+  // (e.g. Users / Tariffs / Regions reached via the Settings hub).
+  breadcrumb?: { href: string; label: string }
   title?: string
   subtitle?: string
   search?: { name: string; placeholder?: string; defaultValue?: string; action?: string }
@@ -234,6 +238,14 @@ export default async function Shell({
 
         {/* Page content */}
         <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {breadcrumb && (
+            <Link
+              href={breadcrumb.href}
+              className="inline-flex items-center text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-3"
+            >
+              {breadcrumb.label}
+            </Link>
+          )}
           {(title || actions) && (
             <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
               <div>

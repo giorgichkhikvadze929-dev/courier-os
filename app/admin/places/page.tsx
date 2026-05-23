@@ -58,7 +58,7 @@ export default async function PlacesPage({
   for (const r of regionCounts) countByRegion[r.regionCode] = r._count._all
 
   return (
-    <Shell currentPath="/admin/places" title={t('places_title')} subtitle={`${total.toLocaleString()} ${t('places_subtitle')}`}>
+    <Shell currentPath="/admin/settings" breadcrumb={{ href: '/admin/settings', label: t('back_to_settings') }} title={t('places_title')} subtitle={`${total.toLocaleString()} ${t('places_subtitle')}`}>
       {/* Region chips */}
       <div className="flex flex-wrap gap-2 mb-4">
         <Link

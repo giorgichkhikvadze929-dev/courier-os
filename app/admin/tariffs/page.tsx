@@ -40,7 +40,7 @@ export default async function TariffsPage({
     : null
 
   return (
-    <Shell currentPath="/admin/tariffs" title={tr('title_tariffs')} subtitle={tr('title_tariffs_subtitle')}>
+    <Shell currentPath="/admin/settings" breadcrumb={{ href: '/admin/settings', label: tr('back_to_settings') }} title={tr('title_tariffs')} subtitle={tr('title_tariffs_subtitle')}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
           <p className="text-xs font-semibold text-[var(--color-text-faint)] uppercase tracking-wide mb-3">{tr('tariffs_set')}</p>
