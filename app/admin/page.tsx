@@ -15,19 +15,28 @@ export default async function AdminPage() {
   const { t, lang } = await getT()
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0))
 
+  // Roll the 11 status-and-money queries into 2 groupBy queries — one giving
+  // count + sum per status across all deliveries, and one giving count + sum
+  // per status for "delivered today" only. Cuts dashboard DB round-trips from
+  // ~14 to ~6.
   const [
-    deliveryCount, receivedCount, inWarehouseCount, inTransitCount,
-    deliveredToday, problemCount, courierCount, companyCount,
-    recentDeliveries, workloadGroups, workloadMoneyGroups,
-    moneyInWarehouseAgg, moneyInTransitAgg, moneyDeliveredTodayAgg,
+    statusGroups,          // count + sum(codAmount) grouped by status
+    deliveredTodayAgg,     // count + sum(codAmount) for delivered today
+    courierCount, companyCount,
+    recentDeliveries,
+    courierLoadGroups,     // active workload + carrying money per courier
     couriers,
   ] = await Promise.all([
-    prisma.delivery.count(),
-    prisma.delivery.count({ where: { status: 'RECEIVED' } }),
-    prisma.delivery.count({ where: { status: 'IN_WAREHOUSE' } }),
-    prisma.delivery.count({ where: { status: { in: ['ASSIGNED', 'IN_TRANSIT'] } } }),
-    prisma.delivery.count({ where: { status: 'DELIVERED', deliveredAt: { gte: startOfDay } } }),
-    prisma.delivery.count({ where: { status: { in: ['FAILED', 'REFUSED', 'RETURNED'] } } }),
+    prisma.delivery.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+      _sum:   { codAmount: true },
+    }),
+    prisma.delivery.aggregate({
+      where:  { status: 'DELIVERED', deliveredAt: { gte: startOfDay } },
+      _count: { _all: true },
+      _sum:   { codAmount: true },
+    }),
     prisma.user.count({ where: { role: 'COURIER', active: true } }),
     prisma.company.count({ where: { active: true } }),
     prisma.delivery.findMany({
@@ -38,28 +47,35 @@ export default async function AdminPage() {
       by: ['courierId'],
       where: { courierId: { not: null }, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } },
       _count: { _all: true },
+      _sum:   { codAmount: true },
     }),
-    prisma.delivery.groupBy({
-      by: ['courierId'],
-      where: { courierId: { not: null }, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } },
-      _sum: { codAmount: true },
-    }),
-    prisma.delivery.aggregate({ where: { status: 'IN_WAREHOUSE' }, _sum: { codAmount: true } }),
-    prisma.delivery.aggregate({ where: { status: { in: ['ASSIGNED', 'IN_TRANSIT'] } }, _sum: { codAmount: true } }),
-    prisma.delivery.aggregate({ where: { status: 'DELIVERED', deliveredAt: { gte: startOfDay } }, _sum: { codAmount: true } }),
     prisma.user.findMany({ where: { role: 'COURIER', active: true }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
   ])
 
+  // Unpack the status group into the named buckets the UI needs.
+  const byStatus = new Map(statusGroups.map((g) => [g.status, g]))
+  const countOf = (st: string) => byStatus.get(st)?._count._all ?? 0
+  const sumOf   = (st: string) => byStatus.get(st)?._sum.codAmount ?? 0
+
+  const deliveryCount    = statusGroups.reduce((s, g) => s + g._count._all, 0)
+  const receivedCount    = countOf('RECEIVED')
+  const inWarehouseCount = countOf('IN_WAREHOUSE')
+  const inTransitCount   = countOf('ASSIGNED') + countOf('IN_TRANSIT')
+  const problemCount     = countOf('FAILED') + countOf('REFUSED') + countOf('RETURNED')
+  const deliveredToday   = deliveredTodayAgg._count._all
+
+  const moneyInWarehouse    = sumOf('IN_WAREHOUSE')
+  const moneyInTransit      = sumOf('ASSIGNED') + sumOf('IN_TRANSIT')
+  const moneyDeliveredToday = deliveredTodayAgg._sum.codAmount ?? 0
+
   const workloadByCourier: Record<string, number> = {}
-  for (const g of workloadGroups) if (g.courierId) workloadByCourier[g.courierId] = g._count._all
+  const moneyByCourier:    Record<string, number> = {}
+  for (const g of courierLoadGroups) {
+    if (!g.courierId) continue
+    workloadByCourier[g.courierId] = g._count._all
+    moneyByCourier[g.courierId]    = g._sum.codAmount ?? 0
+  }
   const maxLoad = Math.max(1, ...Object.values(workloadByCourier))
-
-  const moneyByCourier: Record<string, number> = {}
-  for (const g of workloadMoneyGroups) if (g.courierId) moneyByCourier[g.courierId] = g._sum.codAmount ?? 0
-
-  const moneyInWarehouse    = moneyInWarehouseAgg._sum.codAmount    ?? 0
-  const moneyInTransit      = moneyInTransitAgg._sum.codAmount      ?? 0
-  const moneyDeliveredToday = moneyDeliveredTodayAgg._sum.codAmount ?? 0
 
   const stats = [
     { label: t('label_total_deliveries'), value: deliveryCount,    color: 'text-[var(--color-text-strong)]' },
