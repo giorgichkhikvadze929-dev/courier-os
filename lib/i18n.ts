@@ -539,6 +539,16 @@ const DICT = {
   settings_lang_section: { ge: 'ენა და გარეგნობა',          en: 'Language & Appearance' },
   settings_lang_hint:    { ge: 'ენის შესაცვლელად გამოიყენეთ ზედა მარჯვენა ენის გადამრთველი (GE / EN).', en: 'Use the language toggle in the top right (GE / EN) to change the interface language.' },
 
+  // Settings hub cards (Users, Tariffs, Regions all live under Settings now)
+  settings_section_admin:    { ge: 'მართვა',                                en: 'Management' },
+  settings_users_title:      { ge: 'მომხმარებლები',                         en: 'Users' },
+  settings_users_hint:       { ge: 'ადმინები, კომპანიის მომხმარებლები, კურიერები', en: 'Admins, company users, couriers' },
+  settings_tariffs_title:    { ge: 'ტარიფები',                              en: 'Tariffs' },
+  settings_tariffs_hint:     { ge: 'ფასები კომპანიის × ზონის მიხედვით',       en: 'Per-company per-zone rates' },
+  settings_regions_title:    { ge: 'რეგიონები',                             en: 'Regions' },
+  settings_regions_hint:     { ge: 'საქართველოს რეგიონები, ქალაქები, საფოსტო კოდები', en: 'Georgian regions, cities, postal codes' },
+  settings_open:             { ge: 'გახსნა →',                              en: 'Open →' },
+
   // Tariffs page
   tariffs_set:           { ge: 'ტარიფის დაყენება',            en: 'Set tariff' },
   tariffs_active:        { ge: 'მოქმედი ტარიფები',           en: 'Active rates' },
