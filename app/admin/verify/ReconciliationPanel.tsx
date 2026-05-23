@@ -21,21 +21,70 @@ export default async function ReconciliationPanel({ lang = 'ge' }: { lang?: Lang
   const day = new Date()
   day.setHours(day.getHours() - 24)
 
-  const companies = await prisma.company.findMany({
-    where: { active: true },
-    select: { id: true, name: true },
-  })
+  // Pull every active company + the three aggregates we need across all of
+  // them in 4 queries total — used to be 5 × N (=685 for 137 companies).
+  const [companies, byCompanyStatus, staleByCompany, discrepByCompany] = await Promise.all([
+    prisma.company.findMany({
+      where:  { active: true },
+      select: { id: true, name: true },
+    }),
+    // count grouped by company × status in the window — covers total /
+    // received / warehoused (warehoused = total - received).
+    prisma.delivery.groupBy({
+      by:     ['companyId', 'status'],
+      where:  { companyId: { not: null }, createdAt: { gte: since } },
+      _count: { _all: true },
+    }),
+    // RECEIVED-and-older-than-24h count per company.
+    prisma.delivery.groupBy({
+      by:     ['companyId'],
+      where:  {
+        companyId: { not: null },
+        status:    'RECEIVED',
+        createdAt: { lt: day, gte: since },
+      },
+      _count: { _all: true },
+    }),
+    // Anything flagged with a DISCREPANCY problem in the window.
+    prisma.delivery.groupBy({
+      by:     ['companyId'],
+      where:  {
+        companyId:    { not: null },
+        problemFlag:  { startsWith: 'DISCREPANCY' },
+        createdAt:    { gte: since },
+      },
+      _count: { _all: true },
+    }),
+  ])
 
-  const stats = await Promise.all(companies.map(async (c) => {
-    const [total, received, warehoused, stale, discrepancies] = await Promise.all([
-      prisma.delivery.count({ where: { companyId: c.id, createdAt: { gte: since } } }),
-      prisma.delivery.count({ where: { companyId: c.id, status: 'RECEIVED', createdAt: { gte: since } } }),
-      prisma.delivery.count({ where: { companyId: c.id, status: { not: 'RECEIVED' }, createdAt: { gte: since } } }),
-      prisma.delivery.count({ where: { companyId: c.id, status: 'RECEIVED', createdAt: { lt: day, gte: since } } }),
-      prisma.delivery.count({ where: { companyId: c.id, problemFlag: { startsWith: 'DISCREPANCY' }, createdAt: { gte: since } } }),
-    ])
-    return { id: c.id, name: c.name, total, received, warehoused, stale, discrepancies }
-  }))
+  // Fold the groupBy rows into per-company tallies.
+  const tally = new Map<string, { total: number; received: number; stale: number; discrepancies: number }>()
+  function bump(id: string | null | undefined): { total: number; received: number; stale: number; discrepancies: number } | null {
+    if (!id) return null
+    let t = tally.get(id)
+    if (!t) { t = { total: 0, received: 0, stale: 0, discrepancies: 0 }; tally.set(id, t) }
+    return t
+  }
+  for (const g of byCompanyStatus) {
+    const t = bump(g.companyId); if (!t) continue
+    t.total += g._count._all
+    if (g.status === 'RECEIVED') t.received += g._count._all
+  }
+  for (const g of staleByCompany)   { const t = bump(g.companyId); if (t) t.stale         = g._count._all }
+  for (const g of discrepByCompany) { const t = bump(g.companyId); if (t) t.discrepancies = g._count._all }
+
+  const stats = companies.map((c) => {
+    const t = tally.get(c.id) ?? { total: 0, received: 0, stale: 0, discrepancies: 0 }
+    return {
+      id:            c.id,
+      name:          c.name,
+      total:         t.total,
+      received:      t.received,
+      warehoused:    t.total - t.received,
+      stale:         t.stale,
+      discrepancies: t.discrepancies,
+    }
+  })
 
   const withActivity = stats.filter((s) => s.total > 0)
   if (withActivity.length === 0) return null

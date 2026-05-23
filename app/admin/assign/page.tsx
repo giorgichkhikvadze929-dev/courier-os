@@ -22,15 +22,22 @@ export default async function AssignPage() {
 
   const { t, lang } = await getT()
 
-  const [warehouseParcels, couriers, activeLoad, zoneHistory] = await Promise.all([
+  // Cap the warehouse query at 1,000 parcels — that's far more than a normal
+  // day's assignment volume, but stops the page from blowing up when a giant
+  // seeded backlog lands in IN_WAREHOUSE. The bucketing still works; if the
+  // backlog ever exceeds 1k an admin can pick the next batch by re-running.
+  const WAREHOUSE_DISPLAY_CAP = 1000
+  const [warehouseParcels, totalWarehouseCount, couriers, activeLoad, zoneHistory] = await Promise.all([
     prisma.delivery.findMany({
-      where: { status: 'IN_WAREHOUSE' },
+      where:   { status: 'IN_WAREHOUSE' },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-      select: {
+      take:    WAREHOUSE_DISPLAY_CAP,
+      select:  {
         id: true, trackingNumber: true, customerName: true, customerPhone: true,
         dropoffAddress: true, zone: true, city: true, priority: true, codAmount: true,
       },
     }),
+    prisma.delivery.count({ where: { status: 'IN_WAREHOUSE' } }),
     prisma.user.findMany({
       where: { role: 'COURIER', active: true },
       orderBy: { name: 'asc' },
@@ -112,13 +119,14 @@ export default async function AssignPage() {
   }))
 
   const totalReady = warehouseParcels.length
+  const moreInWarehouse = totalWarehouseCount > totalReady
 
   return (
     <Shell
       currentPath="/admin/assign"
       title={t('assign_title')}
       subtitle={totalReady > 0
-        ? `${totalReady} ${t('parcel_word_plural')} · ${orderedBuckets.length} ${t('assign_buckets_label')}`
+        ? `${totalReady} ${t('parcel_word_plural')} · ${orderedBuckets.length} ${t('assign_buckets_label')}${moreInWarehouse ? ` (of ${totalWarehouseCount.toLocaleString()})` : ''}`
         : t('assign_nothing')}
     >
       <AssignPanel buckets={orderedBuckets} couriers={courierOptions} lang={lang} />

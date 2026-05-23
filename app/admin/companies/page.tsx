@@ -11,12 +11,26 @@ export default async function CompaniesPage() {
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()
-  const companies = await prisma.company.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: {
-      _count: { select: { deliveries: true, users: true, tariffs: true } },
-    },
-  })
+  // Two fast queries instead of `findMany` with `_count` subqueries — Prisma
+  // turns the latter into one correlated COUNT per row, which was 137 extra
+  // round-trips for the 137 companies we have today.
+  const [companyRows, deliveriesByCompany] = await Promise.all([
+    prisma.company.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.delivery.groupBy({
+      by:     ['companyId'],
+      where:  { companyId: { not: null } },
+      _count: { _all: true },
+    }),
+  ])
+  const countByCompany = new Map<string, number>()
+  for (const g of deliveriesByCompany) if (g.companyId) countByCompany.set(g.companyId, g._count._all)
+
+  // Attach the count back so the existing JSX (`c._count.deliveries`) keeps
+  // working without further surgery.
+  const companies = companyRows.map((c) => ({
+    ...c,
+    _count: { deliveries: countByCompany.get(c.id) ?? 0 },
+  }))
 
   return (
     <Shell
