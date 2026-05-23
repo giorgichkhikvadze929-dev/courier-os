@@ -69,8 +69,12 @@ export default async function AdminOrdersPage({
       const fn = filenameById.get(o.importBatchId)
       if (fn) return fn
     }
-    // Fall back to notes — strip the "Backfilled — " prefix for cleanliness.
-    return (o.notes ?? '').replace(/^Backfilled\s*[—-]\s*/, '') || '—'
+    // Fall back to notes — strip prefixes used by backfill / collapse scripts
+    // so the file name reads cleanly on its own.
+    return (o.notes ?? '')
+      .replace(/^Backfilled\s*[—-]\s*/, '')
+      .replace(/^Source file:\s*/, '')
+      || '—'
   }
 
   return (
