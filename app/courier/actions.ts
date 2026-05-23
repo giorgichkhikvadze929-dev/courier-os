@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { auth } from '@/auth'
+import { getActiveSession } from '@/lib/impersonation'
 import { audit } from '@/lib/audit'
 import { notify } from '@/lib/notifications'
 
@@ -51,12 +52,20 @@ async function notifyAdminsOfStatusChange(opts: {
   ))
 }
 
+/**
+ * Auth gate for courier-side actions. Honours admin impersonation: when an
+ * admin is previewing-as a courier, getActiveSession() returns the impersonated
+ * courier's id — so writes happen on behalf of that courier, not the admin.
+ * Without this fix the parcel update silently no-ops because the WHERE clause
+ * filters on `courierId: admin.id` which never matches.
+ */
 async function requireCourier() {
-  const session = await auth()
-  if (!session) redirect('/login')
-  const role = session.user?.role as string
+  const raw = await auth()
+  if (!raw) redirect('/login')
+  const role = raw.user?.role as string
   if (!['COURIER', 'ADMIN'].includes(role)) redirect('/login')
-  return session
+  const active = await getActiveSession()
+  return active ?? { user: raw.user }
 }
 
 export async function updateDeliveryStatus(deliveryId: string, formData: FormData): Promise<void> {
