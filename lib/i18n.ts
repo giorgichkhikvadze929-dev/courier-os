@@ -585,6 +585,7 @@ const DICT = {
   orders_col_file:           { ge: 'ფაილი',                                 en: 'File' },
   order_from_imports:        { ge: 'წყარო იმპორტი',                          en: 'From import' },
   orders_rollup_title:       { ge: 'ყველა იმპორტი',                          en: 'All imports' },
+  orders_rollup_assignment:  { ge: 'ყველა კურიერთან გასული',                   en: 'All courier bundles' },
   orders_open_all:           { ge: 'ყველას ნახვა →',                         en: 'Open all →' },
   orders_collapse:           { ge: 'ჩაკეცვა',                                en: 'Collapse' },
   order_detail_title:        { ge: 'შეკვეთა',                              en: 'Order' },
