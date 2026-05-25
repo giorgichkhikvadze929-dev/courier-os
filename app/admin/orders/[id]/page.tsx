@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -32,7 +32,7 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>
   searchParams: Promise<{ page?: string; pageSize?: string; sort?: string; status?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()

@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -13,7 +13,7 @@ import { money } from '@/lib/format'
  * /admin/deliveries/[id].
  */
 export default async function CompanyOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session) redirect('/login')
   const role = session.user?.role as string
   if (!['COMPANY', 'ADMIN'].includes(role)) redirect('/login')

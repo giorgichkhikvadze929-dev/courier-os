@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
@@ -29,7 +29,7 @@ export default async function AuditPage({
 }: {
   searchParams: Promise<{ entity?: string; action?: string; page?: string; pageSize?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()

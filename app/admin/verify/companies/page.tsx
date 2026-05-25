@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Shell from '@/app/components/Shell'
 import ReconciliationPanel from '../ReconciliationPanel'
@@ -10,7 +10,7 @@ import { getT } from '@/lib/i18n-server'
  * company that had any parcel activity in the last 30 days.
  */
 export default async function VerifyAllCompaniesPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()

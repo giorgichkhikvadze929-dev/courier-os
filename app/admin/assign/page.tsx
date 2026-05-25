@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
@@ -17,7 +17,7 @@ import { getT } from '@/lib/i18n-server'
  * assigned manually — never blocked behind data fixing.
  */
 export default async function AssignPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()
@@ -49,10 +49,17 @@ export default async function AssignPage() {
       where: { courierId: { not: null }, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } },
       _count: { _all: true },
     }),
-    // Historical experience per courier × zone (DELIVERED count).
+    // Historical experience per courier × zone (DELIVERED count) over the
+    // last 90 days. Bounded so the scan stays flat as the DELIVERED table
+    // grows; recent experience is what matters for routing decisions anyway.
     prisma.delivery.groupBy({
       by: ['courierId', 'zone'],
-      where: { courierId: { not: null }, status: 'DELIVERED', zone: { not: null } },
+      where: {
+        courierId:   { not: null },
+        status:      'DELIVERED',
+        zone:        { not: null },
+        deliveredAt: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
+      },
       _count: { _all: true },
     }),
   ])

@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -9,7 +9,7 @@ import { getT } from '@/lib/i18n-server'
 import { money } from '@/lib/format'
 
 export default async function AdminPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()

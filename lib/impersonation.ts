@@ -1,5 +1,7 @@
+import { cache } from 'react'
 import { cookies } from 'next/headers'
-import { auth, IMPERSONATE_COOKIE } from '@/auth'
+import { IMPERSONATE_COOKIE } from '@/auth'
+import { getSession } from '@/lib/session'
 import prisma from '@/lib/prisma'
 
 /**
@@ -28,8 +30,11 @@ export type ImpersonatedSession = {
   }
 }
 
-export async function getActiveSession(): Promise<ImpersonatedSession | null> {
-  const session = await auth()
+// Wrapped in React cache() so the impersonation user lookup is also deduped
+// across the page render (page gates on this, Shell renders impersonation
+// banner from this, getT() ignores it).
+export const getActiveSession = cache(async (): Promise<ImpersonatedSession | null> => {
+  const session = await getSession()
   if (!session?.user) return null
 
   const role = (session.user as { role?: string }).role ?? ''
@@ -71,4 +76,4 @@ export async function getActiveSession(): Promise<ImpersonatedSession | null> {
       email: session.user.email ?? null,
     },
   }
-}
+})

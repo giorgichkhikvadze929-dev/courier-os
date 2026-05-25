@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ import { money } from '@/lib/format'
 import { getT } from '@/lib/i18n-server'
 
 export default async function CourierDeliveryPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   const { t } = await getT()

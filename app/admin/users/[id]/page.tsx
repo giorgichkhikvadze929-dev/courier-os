@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -10,7 +10,7 @@ import { money } from '@/lib/format'
 const ROLES = ['ADMIN', 'COMPANY', 'COURIER']
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()

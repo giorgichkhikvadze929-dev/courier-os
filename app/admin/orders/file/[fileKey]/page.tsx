@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -23,7 +23,7 @@ export default async function FileDetailPage({
 }: {
   params: Promise<{ fileKey: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()

@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -19,7 +19,7 @@ export default async function TariffHistoryPage({
 }: {
   searchParams: Promise<{ company?: string; zone?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t: tr, lang } = await getT()

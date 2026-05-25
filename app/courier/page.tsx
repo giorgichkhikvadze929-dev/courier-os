@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -13,7 +13,7 @@ import InTransitActions from './components/InTransitActions'
 import { money } from '@/lib/format'
 
 export default async function CourierPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   // Use the impersonated identity when an admin is "previewing as" a courier —

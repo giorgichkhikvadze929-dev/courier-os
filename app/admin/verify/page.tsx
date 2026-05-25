@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -29,7 +29,7 @@ export default async function VerifyPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string; sort?: string; q?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()

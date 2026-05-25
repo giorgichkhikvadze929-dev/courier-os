@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
@@ -14,7 +14,7 @@ import { markPickedUpAt } from '../actions'
  * and taps "Delivered to warehouse" once it's physically on our shelf.
  */
 export default async function PickupTasksPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   const { t } = await getT()

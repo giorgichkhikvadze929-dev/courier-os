@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -17,7 +17,7 @@ export default async function CourierHistoryPage({
 }: {
   searchParams: Promise<{ status?: string; q?: string; page?: string; pageSize?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || !['COURIER', 'ADMIN'].includes(session.user?.role as string)) redirect('/login')
 
   const { t, lang } = await getT()

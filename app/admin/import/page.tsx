@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Shell from '@/app/components/Shell'
 import prisma from '@/lib/prisma'
@@ -6,7 +6,7 @@ import ImportClient from './ImportClient'
 import { getT } from '@/lib/i18n-server'
 
 export default async function ImportPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t, lang } = await getT()

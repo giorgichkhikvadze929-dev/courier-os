@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -18,17 +18,23 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<{ type?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()
   const sp = await searchParams
   const type: 'IMPORT' | 'ASSIGNMENT' = sp.type === 'ASSIGNMENT' ? 'ASSIGNMENT' : 'IMPORT'
 
+  // Cap the orders query so we don't pull the entire history on every nav.
+  // For IMPORT we roll up by file, so a couple hundred Orders is enough to
+  // populate ~all the files anyone scrolls through. For ASSIGNMENT (one
+  // bundle per courier per day) 300 covers a comfortable history too.
+  const ORDERS_LIMIT = 300
   const [orders, importCount, assignmentCount] = await Promise.all([
     prisma.order.findMany({
       where:   { type },
       orderBy: { createdAt: 'desc' },
+      take:    ORDERS_LIMIT,
       include: {
         company: { select: { id: true, name: true } },
         courier: { select: { id: true, name: true } },

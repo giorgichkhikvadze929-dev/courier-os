@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -12,7 +12,7 @@ import { money } from '@/lib/format'
  * they only see their own batches.
  */
 export default async function CompanyOrdersPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session) redirect('/login')
   const role = session.user?.role as string
   if (!['COMPANY', 'ADMIN'].includes(role)) redirect('/login')

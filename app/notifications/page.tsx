@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -16,7 +16,7 @@ async function markAllRead(userId: string): Promise<void> {
 }
 
 export default async function NotificationsPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session) redirect('/login')
 
   const { t } = await getT()

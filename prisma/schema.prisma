@@ -170,6 +170,12 @@ model Delivery {
   @@index([assignmentOrderId])
   // Used by dashboard "delivered today" / per-courier delivered-value queries.
   @@index([deliveredAt])
+  // Active-load groupBy: courier dashboard / assign page filter on
+  // status IN ('ASSIGNED','IN_TRANSIT') and group by courierId.
+  @@index([status, courierId])
+  // /admin/assign zone-history groupBy filters on status='DELIVERED'
+  // and groups by zone — zone alone keeps the read range small.
+  @@index([zone])
 }
 
 model DeliveryHistory {
@@ -216,6 +222,9 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([actorId])
+  // /admin/denied filters AuditLog by entity='Delivery' + action='DELETE'
+  // and sorts by createdAt desc.
+  @@index([entity, action, createdAt])
 }
 
 // ─── Inventory ────────────────────────────────────────────────────────────────

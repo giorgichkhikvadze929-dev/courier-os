@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { getActiveSession } from '@/lib/impersonation'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ import { money } from '@/lib/format'
  * the dashboard / parcel detail page.
  */
 export default async function CourierOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const baseSession = await auth()
+  const baseSession = await getSession()
   if (!baseSession || !['COURIER', 'ADMIN'].includes(baseSession.user?.role as string)) redirect('/login')
   const session = await getActiveSession()
   const courierId = session?.user.id ?? (baseSession.user as { id?: string }).id

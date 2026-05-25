@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -6,7 +6,7 @@ import { createCompany } from '../actions'
 import { getT } from '@/lib/i18n-server'
 
 export default async function NewCompanyPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()

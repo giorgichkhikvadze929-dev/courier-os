@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Shell from '@/app/components/Shell'
@@ -9,7 +9,7 @@ import { getT } from '@/lib/i18n-server'
 const ROLES = ['ADMIN', 'COMPANY', 'COURIER']
 
 export default async function NewUserPage() {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { t } = await getT()

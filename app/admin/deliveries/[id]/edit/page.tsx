@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { getSession } from '@/lib/session'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
@@ -10,7 +10,7 @@ const PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'URGENT']
 const PACKAGE_TYPES = ['', 'SMALL', 'MEDIUM', 'LARGE', 'FRAGILE', 'DOCUMENT']
 
 export default async function EditDeliveryPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session || session.user?.role !== 'ADMIN') redirect('/login')
 
   const { id } = await params
