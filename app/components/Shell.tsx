@@ -35,7 +35,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
     { href: '/admin/verify',      labelKey: 'nav_verify',     icon: ICONS.pkg },
     { href: '/admin/assign',      labelKey: 'nav_assign',     icon: ICONS.route },
     { href: '/admin/denied',      labelKey: 'nav_denied',     icon: ICONS.bell },
-    { href: '/admin/import',      labelKey: 'nav_import',     icon: ICONS.upload },
+    // /admin/import lives under Settings now — admins rarely use it day-to-day.
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
     { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },
@@ -118,26 +118,33 @@ export default async function Shell({
           </SidebarToggle>
         </div>
 
+        {/* Which item is active? The one whose href is the LONGEST prefix
+            of currentPath. Prevents double-highlight when a role's root
+            (e.g. /admin) is a prefix of every page under it. */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {nav.map((item) => {
-            const active = currentPath === item.href || currentPath?.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                data-sidebar-item
-                title={tr(item.labelKey)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-[var(--color-primary)] text-white shadow-sm shadow-blue-900/30'
-                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card)]'
-                }`}
-              >
-                <span className="flex-shrink-0">{item.icon}</span>
-                <span data-sidebar-label>{tr(item.labelKey)}</span>
-              </Link>
-            )
-          })}
+          {(() => {
+            const matches = nav.filter((i) => currentPath === i.href || currentPath?.startsWith(i.href + '/'))
+            const activeHref = matches.sort((a, b) => b.href.length - a.href.length)[0]?.href
+            return nav.map((item) => {
+              const active = activeHref === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-sidebar-item
+                  title={tr(item.labelKey)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-[var(--color-primary)] text-white shadow-sm shadow-blue-900/30'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card)]'
+                  }`}
+                >
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  <span data-sidebar-label>{tr(item.labelKey)}</span>
+                </Link>
+              )
+            })
+          })()}
         </nav>
 
         <div className="border-t border-[var(--color-border)] px-3 py-3">
@@ -163,12 +170,16 @@ export default async function Shell({
         <MobileDrawer
           brandLabel="CourierOS"
           brandSubtitle={roleLabel}
-          nav={nav.map((item) => ({
-            href: item.href,
-            label: tr(item.labelKey),
-            icon: item.icon,
-            active: currentPath === item.href || (currentPath?.startsWith(item.href + '/') ?? false),
-          }))}
+          nav={(() => {
+            const matches = nav.filter((i) => currentPath === i.href || currentPath?.startsWith(i.href + '/'))
+            const activeHref = matches.sort((a, b) => b.href.length - a.href.length)[0]?.href
+            return nav.map((item) => ({
+              href: item.href,
+              label: tr(item.labelKey),
+              icon: item.icon,
+              active: activeHref === item.href,
+            }))
+          })()}
           userBlock={
             <>
               <div className="flex items-center gap-3 px-2 py-2">
