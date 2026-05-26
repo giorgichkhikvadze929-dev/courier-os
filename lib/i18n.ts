@@ -420,6 +420,7 @@ const DICT = {
   wizard_next_courier:      { ge: 'შემდეგი: კურიერის არჩევა',           en: 'Next: Assign courier' },
   wizard_save_order:        { ge: 'შეკვეთის შენახვა',                   en: 'Save order' },
   wizard_save_skipped:      { ge: 'ვერც ერთი ამანათი ვერ მიენიჭა — შესაძლოა უკვე გადანაწილებულია.', en: 'No parcels could be assigned — they may already be assigned.' },
+  wizard_step_locked:       { ge: 'წინა ნაბიჯი ჯერ არ დასრულებულა',  en: 'Finish the previous step first' },
   verify_deny_reason_required: { ge: 'უარყოფის მიზეზი (სავალდებულო)…', en: 'Reason for denial (required)…' },
   verify_btn_denying:       { ge: 'უარყოფა მიმდინარეობს…',         en: 'Denying…' },
   verify_label_clear:       { ge: 'გასუფთავება',                   en: 'Clear' },

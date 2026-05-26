@@ -52,27 +52,52 @@ export default function WizardSteps({
             stepIdx <  idx ? 'done' :
             stepIdx === idx ? 'current' :
             'pending'
+
+          // Pending steps require data the user hasn't entered yet
+          // (e.g. picking a courier). Rendering them as Links would
+          // just trigger a redirect back to the current step — that
+          // reads as "nothing happens" to the user. So we render
+          // pending steps as inert text, and only DONE steps as
+          // Links (so the user can step backwards). The current
+          // step is also inert — there's no point linking to it.
+          const interactive = state === 'done'
+          const Inner = (
+            <>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${
+                state === 'current' ? 'bg-[var(--color-primary)] text-white shadow shadow-blue-900/30' :
+                state === 'done'    ? 'bg-[var(--color-primary)]/80 text-white group-hover:bg-[var(--color-primary)]' :
+                                      'bg-[var(--color-card-hover)] text-[var(--color-text-faint)]'
+              }`}>
+                {state === 'done' ? '✓' : s.n}
+              </div>
+              <div className="min-w-0">
+                <p className={`text-sm font-semibold truncate ${
+                  state === 'pending' ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-strong)]'
+                }`}>{s.label}</p>
+                <p className="text-xs text-[var(--color-text-muted)] truncate">{s.sub}</p>
+              </div>
+            </>
+          )
+
           return (
             <div key={s.key} className="flex items-center gap-3 flex-1 min-w-0">
-              <Link
-                href={s.href}
-                className="flex items-center gap-3 min-w-0 group"
-                title={s.label}
-              >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${
-                  state === 'current' ? 'bg-[var(--color-primary)] text-white shadow shadow-blue-900/30' :
-                  state === 'done'    ? 'bg-[var(--color-primary)]/80 text-white' :
-                                        'bg-[var(--color-card-hover)] text-[var(--color-text-faint)] group-hover:bg-[var(--color-border-strong)]'
-                }`}>
-                  {state === 'done' ? '✓' : s.n}
+              {interactive ? (
+                <Link
+                  href={s.href}
+                  className="flex items-center gap-3 min-w-0 group"
+                  title={s.label}
+                >
+                  {Inner}
+                </Link>
+              ) : (
+                <div
+                  className={`flex items-center gap-3 min-w-0 ${state === 'pending' ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  aria-current={state === 'current' ? 'step' : undefined}
+                  title={state === 'pending' ? t('wizard_step_locked') : s.label}
+                >
+                  {Inner}
                 </div>
-                <div className="min-w-0">
-                  <p className={`text-sm font-semibold truncate ${
-                    state === 'pending' ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-strong)]'
-                  }`}>{s.label}</p>
-                  <p className="text-xs text-[var(--color-text-muted)] truncate">{s.sub}</p>
-                </div>
-              </Link>
+              )}
               {i < arr.length - 1 && (
                 <div className={`flex-1 h-px min-w-[1rem] ${
                   stepIdx < idx ? 'bg-[var(--color-primary)]/40' : 'bg-[var(--color-border)]'
