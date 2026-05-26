@@ -380,6 +380,8 @@ const DICT = {
   bulk_total_cod:           { ge: 'ჯამური COD',                     en: 'Total COD' },
   bulk_assign_courier_title:{ ge: 'მიენიჭოს კურიერს',                 en: 'Assign to courier' },
   bulk_verify_title:        { ge: 'ვერიფიკაცია',                     en: 'Verify selection' },
+  cart_empty_title:         { ge: 'შენი ნაკრები ცარიელია',            en: 'Your cart is empty' },
+  cart_empty_hint:          { ge: 'მონიშნე ამანათები ცხრილში ნაკრების შესავსებად. შემდეგ აირჩიე კურიერი და დააწექი „შეკვეთის შექმნა“.', en: 'Tick parcels in the table to add them to the cart. Then pick a courier and press "Create order".' },
   verify_deny_reason_required: { ge: 'უარყოფის მიზეზი (სავალდებულო)…', en: 'Reason for denial (required)…' },
   verify_btn_denying:       { ge: 'უარყოფა მიმდინარეობს…',         en: 'Denying…' },
   verify_label_clear:       { ge: 'გასუფთავება',                   en: 'Clear' },
