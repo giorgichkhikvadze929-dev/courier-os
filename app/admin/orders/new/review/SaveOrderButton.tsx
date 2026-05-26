@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { bulkAssignToCourier } from '../actions'
+import { bulkAssignToCourier } from '@/app/admin/deliveries/actions'
 import { t as translate, type Lang, type DictKey } from '@/lib/i18n'
 
 /**

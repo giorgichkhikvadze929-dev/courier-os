@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import { t as translate, type Lang, type DictKey } from '@/lib/i18n'
 
-export type StepKey = 'browse' | 'details' | 'courier' | 'review'
+export type StepKey = 'select' | 'details' | 'courier' | 'review'
 
 /**
  * 4-step wizard ribbon used across the Create-Order flow:
- *   1. Browse parcels   (/admin/deliveries)
- *   2. Order details    (/admin/deliveries/details?ids=…)
- *   3. Assign courier   (/admin/deliveries/courier?ids=…)
- *   4. Review & save    (/admin/deliveries/review?ids=…&courier=…)
+ *   1. Select parcels   (/admin/orders/new)
+ *   2. Order details    (/admin/orders/new/details?ids=…)
+ *   3. Assign courier   (/admin/orders/new/courier?ids=…)
+ *   4. Review & save    (/admin/orders/new/review?ids=…&courier=…)
  *
  * Each step renders as a numbered circle + label. The current step is
  * filled blue; completed steps are also blue; pending steps are grey.
@@ -28,7 +28,7 @@ export default function WizardSteps({
 }) {
   const t = (k: DictKey) => translate(k, lang)
 
-  const order: StepKey[] = ['browse', 'details', 'courier', 'review']
+  const order: StepKey[] = ['select', 'details', 'courier', 'review']
   const idx = order.indexOf(current)
 
   const qs = new URLSearchParams()
@@ -37,10 +37,10 @@ export default function WizardSteps({
   const tail = qs.toString() ? `?${qs.toString()}` : ''
 
   const steps: { key: StepKey; n: number; label: string; sub: string; href: string }[] = [
-    { key: 'browse',  n: 1, label: t('step_browse'),  sub: t('step_browse_sub'),  href: `/admin/deliveries${ids && ids.length ? `?status=IN_WAREHOUSE` : ''}` },
-    { key: 'details', n: 2, label: t('step_details'), sub: t('step_details_sub'), href: `/admin/deliveries/details${tail}` },
-    { key: 'courier', n: 3, label: t('step_assign'),  sub: t('step_assign_sub'),  href: `/admin/deliveries/courier${tail}` },
-    { key: 'review',  n: 4, label: t('step_done'),    sub: t('step_done_sub'),    href: `/admin/deliveries/review${tail}` },
+    { key: 'select',  n: 1, label: t('step_select'),  sub: t('step_select_sub'),  href: `/admin/orders/new${tail}` },
+    { key: 'details', n: 2, label: t('step_details'), sub: t('step_details_sub'), href: `/admin/orders/new/details${tail}` },
+    { key: 'courier', n: 3, label: t('step_assign'),  sub: t('step_assign_sub'),  href: `/admin/orders/new/courier${tail}` },
+    { key: 'review',  n: 4, label: t('step_done'),    sub: t('step_done_sub'),    href: `/admin/orders/new/review${tail}` },
   ]
 
   return (

@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import BulkPanel from './BulkPanel'
 import SortPicker from './SortPicker'
-import WizardSteps from './WizardSteps'
 import Pagination from '@/app/components/Pagination'
 import ActiveFilterChips, { type Chip } from '@/app/components/ActiveFilterChips'
 import { IconUpload } from '@/app/components/Icons'
@@ -182,8 +181,6 @@ export default async function AdminDeliveriesPage({
         </Link>
       }
     >
-      <WizardSteps current="browse" lang={lang} />
-
       {/* View tabs: Active vs Completed */}
       <div className="flex items-center gap-1 border-b border-[var(--color-border)] mb-4 overflow-x-auto">
         <Link

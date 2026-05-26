@@ -115,6 +115,15 @@ export default async function AdminOrdersPage({
       currentPath="/admin/orders"
       title={t('orders_title')}
       subtitle={`${orders.length} ${orders.length === 1 ? t('orders_count_one') : t('orders_count_many')}`}
+      actions={
+        <Link
+          href="/admin/orders/new"
+          className="inline-flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {t('nav_create_order')}
+        </Link>
+      }
     >
       {/* Type tabs — Inbound (file imports) vs Outbound (courier bundles). */}
       <div className="border-b border-[var(--color-border)] flex gap-6 mb-5">

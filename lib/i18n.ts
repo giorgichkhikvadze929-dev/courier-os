@@ -397,6 +397,14 @@ const DICT = {
   step_done:                { ge: 'შეკვეთის შექმნა',                   en: 'Review & save' },
   step_done_sub:            { ge: 'საბოლოოდ',                         en: 'Final summary' },
   // Wizard pages
+  wizard_back_to_orders:    { ge: '← შეკვეთები',                       en: '← Orders' },
+  wizard_title_select:      { ge: 'ამანათების მონიშვნა',                en: 'Select parcels' },
+  wizard_subtitle_select:   { ge: 'საწყობში არსებული ამანათები, რომელთა გადაცემაც გსურს კურიერთან', en: 'Warehouse parcels you want to hand off to a courier' },
+  wizard_select_search_title:{ ge: 'საწყობის ძებნა',                   en: 'Search inventory' },
+  wizard_select_search_placeholder:{ ge: 'მონახე ტრეკინგი, მომხმარებელი ან ტელეფონი', en: 'Find by tracking, customer, or phone' },
+  wizard_select_empty:      { ge: 'საწყობში ამანათები არ მოიძებნა.',    en: 'No parcels available in the warehouse.' },
+  wizard_select_select_all: { ge: 'ყველას მონიშვნა',                   en: 'Select all on page' },
+  wizard_select_unselect_all:{ ge: 'მონიშვნის გაუქმება',                en: 'Unselect all' },
   wizard_title_details:     { ge: 'შეკვეთის დეტალები',                  en: 'Order details' },
   wizard_subtitle_details:  { ge: 'ნაკრების გადახედვა კურიერთან გადაცემამდე',  en: 'Review the bundle before assigning a courier' },
   wizard_details_card_title:{ ge: 'არჩეული ამანათები',                   en: 'Selected parcels' },
@@ -442,6 +450,7 @@ const DICT = {
 
   // Invoices
   nav_orders:         { ge: 'შეკვეთები',                            en: 'Orders' },
+  nav_create_order:   { ge: 'შეკვეთის შექმნა',                     en: 'Create order' },
   inv_title:          { ge: 'ინვოისები',                            en: 'Invoices' },
   inv_title_one:      { ge: 'ინვოისი',                              en: 'Invoice' },
   inv_subtitle:       { ge: 'სულ ჩანაწერი',                          en: 'total records' },

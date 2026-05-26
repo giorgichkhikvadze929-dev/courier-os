@@ -140,11 +140,12 @@ export default function BulkPanel({
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-6 lg:items-start">
-      <div className="min-w-0">
-      {/* ── Mobile / medium screens: compact sticky-top bar (< lg) ───────── */}
+    <>
+      {/* Sticky action bar shown whenever any rows are selected. /admin/deliveries
+          is the plain list view — bulk verify/deny/assign all surface here.
+          The cart-style right-rail lives on the Create-Order wizard now. */}
       {selected.size > 0 && (
-        <div className="sticky top-0 z-10 bg-[var(--color-primary-soft)]/40 border border-[var(--color-border)] rounded-2xl mb-4 shadow lg:hidden">
+        <div className="sticky top-0 z-10 bg-[var(--color-primary-soft)]/40 border border-[var(--color-border)] rounded-2xl mb-4 shadow">
           {/* Cart header row */}
           <div className="p-4 flex flex-wrap items-center gap-3">
           <button
@@ -472,12 +473,12 @@ export default function BulkPanel({
           </div>
         </>
       )}
-      </div>
 
-      {/* ── lg+ right rail — inline (not floating). Always visible, shows
-          an empty state when nothing's selected so admins know where the
-          cart will appear. */}
-      <aside className="hidden lg:flex flex-col gap-3 sticky top-4 self-start max-h-[calc(100vh-2rem)]">
+      {/* The lg+ right-rail cart used to live here. It moved to the
+          Create-Order wizard (/admin/orders/new). /admin/deliveries is
+          back to being a plain list view + sticky-top bulk actions. */}
+      {false && (
+        <aside className="hidden">
         {selected.size === 0 ? (
           <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 text-center">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--color-primary-soft)]/40 flex items-center justify-center">
@@ -587,6 +588,7 @@ export default function BulkPanel({
           </>
         )}
       </aside>
-    </div>
+      )}
+    </>
   )
 }

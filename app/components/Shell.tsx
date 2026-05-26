@@ -26,20 +26,22 @@ const ICONS: Record<string, ReactNode> = {
   cash:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   route:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 003.5-3.5v0a3.5 3.5 0 00-3.5-3.5h-11A3.5 3.5 0 013 8.5v0A3.5 3.5 0 016.5 5H15"/><circle cx="18" cy="5" r="3"/></svg>,
   pkg:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M16 16v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3M21 12V5a2 2 0 00-2-2H10a2 2 0 00-2 2v7M3 8h13M16 12h5M21 12l-3-3M21 12l-3 3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  plus:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="w-4 h-4"><path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 }
 
 const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
+    { href: '/admin/orders/new',  labelKey: 'nav_create_order', icon: ICONS.plus },
     { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
+    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     // Verify, Denied, and Assign were all just filtered views of
     // /admin/deliveries. They've been folded into the Deliveries page:
     //   - status chips switch between RECEIVED / IN_WAREHOUSE / ASSIGNED / IN_TRANSIT
     //   - BulkPanel exposes Verify+Deny on RECEIVED selection
-    //   - BulkPanel exposes Pick-courier+Create-order on IN_WAREHOUSE selection
+    //   - BulkPanel exposes Pick-courier+Assign on IN_WAREHOUSE selection
     // /admin/import lives under Settings — admins rarely use it day-to-day.
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
-    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },
     // Users, Tariffs, Regions (places) — accessed via /admin/settings hub.
     // Inventory removed: not in PRD; pages still exist but unlinked.
