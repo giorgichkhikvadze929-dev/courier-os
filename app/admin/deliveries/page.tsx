@@ -215,10 +215,23 @@ export default async function AdminDeliveriesPage({
         </Link>
       </div>
 
+      {/* ── "Search Parcels" card — mirrors the mockup's "Search Inventory"
+          section: a single card that bundles search + category chips
+          (here, status quick-chips) + filter row inside clear borders. */}
+      <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 sm:p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--color-text-strong)]">{t('search_parcels_title')}</h2>
+          {activeFilterCount > 0 && (
+            <Link href={`/admin/deliveries${view === 'completed' ? '?view=completed' : ''}`} className="text-xs font-semibold text-red-600 dark:text-red-300 hover:underline">
+              {t('btn_clear')}
+            </Link>
+          )}
+        </div>
+
       {/* Quick status chips — one click swaps the status filter. Shown in
           the Active tab; the Completed tab gets its own subset below. */}
       {view === 'active' && (
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {([
             { key: '',             label: t('label_all') },
             { key: 'RECEIVED',     label: tStatus('RECEIVED', lang) },
@@ -339,15 +352,11 @@ export default async function AdminDeliveriesPage({
             {ZONES.map((z) => <option key={z} value={z}>{tZone(z, lang)}</option>)}
           </select>
         </div>
-        <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors h-10">
+        <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors h-10">
           {t('btn_filter')}
         </button>
-        {activeFilterCount > 0 && (
-          <Link href={`/admin/deliveries${view === 'completed' ? '?view=completed' : ''}`} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2 inline-flex items-center h-10">
-            {t('btn_clear')}
-          </Link>
-        )}
       </form>
+      </div>
 
       <div className="flex items-center justify-end gap-3 mb-3">
         <SortPicker

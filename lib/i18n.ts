@@ -382,6 +382,7 @@ const DICT = {
   bulk_verify_title:        { ge: 'ვერიფიკაცია',                     en: 'Verify selection' },
   cart_empty_title:         { ge: 'შენი ნაკრები ცარიელია',            en: 'Your cart is empty' },
   cart_empty_hint:          { ge: 'მონიშნე ამანათები ცხრილში ნაკრების შესავსებად. შემდეგ აირჩიე კურიერი და დააწექი „შეკვეთის შექმნა“.', en: 'Tick parcels in the table to add them to the cart. Then pick a courier and press "Create order".' },
+  search_parcels_title:     { ge: 'ამანათების ძებნა',                  en: 'Search parcels' },
   verify_deny_reason_required: { ge: 'უარყოფის მიზეზი (სავალდებულო)…', en: 'Reason for denial (required)…' },
   verify_btn_denying:       { ge: 'უარყოფა მიმდინარეობს…',         en: 'Denying…' },
   verify_label_clear:       { ge: 'გასუფთავება',                   en: 'Clear' },
