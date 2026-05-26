@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import Link from 'next/link'
 import { getT } from '@/lib/i18n-server'
-import FilterPanel from '@/app/components/FilterPanel'
 import Pagination from '@/app/components/Pagination'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -62,27 +61,34 @@ export default async function AuditPage({
       title={t('title_audit')}
       subtitle={`${total.toLocaleString()} ${t('audit_count')}`}
     >
-      <FilterPanel
-        activeCount={[sp.entity, sp.action].filter(Boolean).length}
-        labels={{ filters: t('filters_title'), show: t('filters_show'), hide: t('filters_hide'), active: t('filters_active') }}
-      >
-        <form className="flex flex-wrap gap-2">
+      {/* Always-visible filter card — matches the Deliveries pattern. */}
+      <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 sm:p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--color-text-strong)]">{t('filters_title')}</h2>
+          {(sp.entity || sp.action) && (
+            <Link href="/admin/audit" className="text-xs font-semibold text-red-600 dark:text-red-300 hover:underline">{t('btn_clear')}</Link>
+          )}
+        </div>
+        <form className="flex flex-wrap gap-3 items-end">
           <input type="hidden" name="page" value="1" />
           <input type="hidden" name="pageSize" value={String(pageSize)} />
-          <select name="entity" defaultValue={sp.entity ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-            <option value="">{t('label_all_entities')}</option>
-            {ENTITIES.map((e) => <option key={e} value={e}>{e}</option>)}
-          </select>
-          <select name="action" defaultValue={sp.action ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-            <option value="">{t('label_all_actions')}</option>
-            {ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-          <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">{t('btn_filter')}</button>
-          {(sp.entity || sp.action) && (
-            <Link href="/admin/audit" className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2 inline-flex items-center">{t('btn_clear')}</Link>
-          )}
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('label_entity')}</label>
+            <select name="entity" defaultValue={sp.entity ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-10">
+              <option value="">{t('label_all_entities')}</option>
+              {ENTITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('label_action')}</label>
+            <select name="action" defaultValue={sp.action ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2.5 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-10">
+              <option value="">{t('label_all_actions')}</option>
+              {ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+          <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors h-10">{t('btn_filter')}</button>
         </form>
-      </FilterPanel>
+      </div>
 
       <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
         {logs.length === 0 ? (

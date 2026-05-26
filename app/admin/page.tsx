@@ -97,9 +97,9 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
         {stats.map((s) => (
-          <div key={s.label} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 hover:shadow-md transition-shadow">
+          <div key={s.label} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">{s.label}</p>
-            <p className={`text-4xl font-bold mt-3 ${s.color}`}>{s.value}</p>
+            <p className={`text-4xl font-bold mt-3 ${s.color} tabular-nums`}>{s.value.toLocaleString()}</p>
           </div>
         ))}
       </div>
