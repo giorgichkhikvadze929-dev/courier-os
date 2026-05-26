@@ -54,7 +54,7 @@ export default async function CourierStep({
           return (
             <Link
               key={c.id}
-              href={`/admin/deliveries/review?${idsParam}&courier=${encodeURIComponent(c.id)}`}
+              href={`/admin/orders/new/review?${idsParam}&courier=${encodeURIComponent(c.id)}`}
               className={`bg-[var(--color-card)] rounded-2xl shadow-sm border p-5 flex items-center gap-4 transition-all ${
                 isPicked
                   ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/30'
@@ -85,7 +85,7 @@ export default async function CourierStep({
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <Link href={`/admin/deliveries/details?${idsParam}`} className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
+        <Link href={`/admin/orders/new/details?${idsParam}`} className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
           ← {t('wizard_back')}
         </Link>
       </div>

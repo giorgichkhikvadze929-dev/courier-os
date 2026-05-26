@@ -28,7 +28,7 @@ export default async function ReviewStep({
   const ids     = (sp.ids ?? '').split(',').filter(Boolean)
   const courier = sp.courier ?? ''
   if (ids.length === 0) redirect('/admin/deliveries')
-  if (!courier) redirect(`/admin/deliveries/courier?ids=${encodeURIComponent(ids.join(','))}`)
+  if (!courier) redirect(`/admin/orders/new/courier?ids=${encodeURIComponent(ids.join(','))}`)
 
   const [parcels, courierRow, activeLoad] = await Promise.all([
     prisma.delivery.findMany({
@@ -39,7 +39,7 @@ export default async function ReviewStep({
     prisma.delivery.count({ where: { courierId: courier, status: { in: ['ASSIGNED', 'IN_TRANSIT'] } } }),
   ])
 
-  if (!courierRow) redirect(`/admin/deliveries/courier?ids=${encodeURIComponent(ids.join(','))}`)
+  if (!courierRow) redirect(`/admin/orders/new/courier?ids=${encodeURIComponent(ids.join(','))}`)
 
   const totalCod = parcels.reduce((s, p) => s + (p.codAmount ?? 0), 0)
   const initials = (courierRow.name ?? '?').split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase()
@@ -115,7 +115,7 @@ export default async function ReviewStep({
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <Link href={`/admin/deliveries/courier?ids=${encodeURIComponent(ids.join(','))}&courier=${encodeURIComponent(courier)}`} className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
+        <Link href={`/admin/orders/new/courier?ids=${encodeURIComponent(ids.join(','))}&courier=${encodeURIComponent(courier)}`} className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
           ← {t('wizard_back')}
         </Link>
       </div>

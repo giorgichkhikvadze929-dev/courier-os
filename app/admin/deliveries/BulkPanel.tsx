@@ -547,7 +547,7 @@ export default function BulkPanel({
                   <button
                     onClick={() => {
                       const ids = Array.from(selected).join(',')
-                      router.push(`/admin/deliveries/details?ids=${encodeURIComponent(ids)}`)
+                      router.push(`/admin/orders/new/details?ids=${encodeURIComponent(ids)}`)
                     }}
                     disabled={busy}
                     className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white text-sm font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"

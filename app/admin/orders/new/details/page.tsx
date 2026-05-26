@@ -77,7 +77,7 @@ export default async function OrderDetailsStep({
         <Link href="/admin/deliveries?status=IN_WAREHOUSE" className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
           ← {t('wizard_back')}
         </Link>
-        <Link href={`/admin/deliveries/courier${tail}`} className="inline-flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
+        <Link href={`/admin/orders/new/courier${tail}`} className="inline-flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
           {t('wizard_next_courier')} →
         </Link>
       </div>

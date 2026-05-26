@@ -24,6 +24,13 @@ const ICONS: Record<string, ReactNode> = {
   upload:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   cog:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   cash:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  // Orders — clipboard with a row of checked lines (matches the mockup)
+  orders:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-3" strokeLinecap="round" strokeLinejoin="round"/><rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  // Create-order — clipboard with a + (mockup uses a document+edit icon;
+  // this stays in the same visual family as `orders`).
+  createOrder: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M9 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-7" strokeLinecap="round" strokeLinejoin="round"/><rect x="9" y="3" width="6" height="4" rx="1" strokeLinecap="round" strokeLinejoin="round"/><path d="M18 3v6M15 6h6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  // Reports — bar-chart icon (was the generic chart in audit)
+  reports:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   route:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 003.5-3.5v0a3.5 3.5 0 00-3.5-3.5h-11A3.5 3.5 0 013 8.5v0A3.5 3.5 0 016.5 5H15"/><circle cx="18" cy="5" r="3"/></svg>,
   pkg:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M16 16v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3M21 12V5a2 2 0 00-2-2H10a2 2 0 00-2 2v7M3 8h13M16 12h5M21 12l-3-3M21 12l-3 3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   plus:      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="w-4 h-4"><path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -32,9 +39,9 @@ const ICONS: Record<string, ReactNode> = {
 const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
-    { href: '/admin/orders/new',  labelKey: 'nav_create_order', icon: ICONS.plus },
+    { href: '/admin/orders/new',  labelKey: 'nav_create_order', icon: ICONS.createOrder },
     { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
-    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
+    { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.orders },
     // Verify, Denied, and Assign were all just filtered views of
     // /admin/deliveries. They've been folded into the Deliveries page:
     //   - status chips switch between RECEIVED / IN_WAREHOUSE / ASSIGNED / IN_TRANSIT
@@ -42,7 +49,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
     //   - BulkPanel exposes Pick-courier+Assign on IN_WAREHOUSE selection
     // /admin/import lives under Settings — admins rarely use it day-to-day.
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
-    { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },
+    { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.reports },
     // Users, Tariffs, Regions (places) — accessed via /admin/settings hub.
     // Inventory removed: not in PRD; pages still exist but unlinked.
     { href: '/admin/settings',    labelKey: 'nav_settings',   icon: ICONS.cog },
