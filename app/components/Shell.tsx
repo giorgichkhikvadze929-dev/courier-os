@@ -32,10 +32,11 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
     { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
-    { href: '/admin/verify',      labelKey: 'nav_verify',     icon: ICONS.pkg },
     { href: '/admin/assign',      labelKey: 'nav_assign',     icon: ICONS.route },
-    { href: '/admin/denied',      labelKey: 'nav_denied',     icon: ICONS.bell },
-    // /admin/import lives under Settings now — admins rarely use it day-to-day.
+    // Verify + Denied are filtered views of /admin/deliveries now —
+    // the bulk Verify/Deny + status quick-chips handle that workflow
+    // inline so they no longer need their own sidebar entries.
+    // /admin/import lives under Settings — admins rarely use it day-to-day.
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
     { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
     { href: '/admin/audit',       labelKey: 'nav_audit',      icon: ICONS.chart },

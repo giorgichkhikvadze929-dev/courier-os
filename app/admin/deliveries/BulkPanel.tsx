@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { bulkAssignToCourier, type BulkResult } from './actions'
+import { verifyMany, denyMany } from '@/app/admin/verify/actions'
 import { StatusBadge, PriorityBadge } from '@/app/components/StatusBadge'
 import ColumnHeader, { type ColumnFilter } from '@/app/components/ColumnHeader'
 import { tZone, tPackage, t as translate, type Lang, type DictKey } from '@/lib/i18n'
@@ -56,13 +57,29 @@ export default function BulkPanel({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [outcome, setOutcome] = useState<BulkResult | null>(null)
+  const [verifyOutcome, setVerifyOutcome] = useState<{ verified: number; skipped: number } | null>(null)
+  const [denyOutcome, setDenyOutcome] = useState<{ denied: number; skipped: number } | null>(null)
   const [chosenCourier, setChosenCourier] = useState('')
+  const [denyReason, setDenyReason] = useState('')
+  const [showDenyInput, setShowDenyInput] = useState(false)
 
-  // Only IN_WAREHOUSE deliveries are assignable per PRD flow
+  // Selectable = actionable status. The exact action available depends on
+  // what the selected items are: RECEIVED → verify/deny, IN_WAREHOUSE →
+  // assign-to-courier.
   const selectableIds = useMemo(
     () => deliveries.filter((d) => ['IN_WAREHOUSE', 'RECEIVED'].includes(d.status)).map((d) => d.id),
     [deliveries],
   )
+
+  // Which actions to expose for the current selection.
+  const selectionMode = useMemo(() => {
+    if (selected.size === 0) return null as 'verify' | 'assign' | 'mixed' | null
+    const statuses = new Set<string>()
+    for (const d of deliveries) if (selected.has(d.id)) statuses.add(d.status)
+    if (statuses.size === 1 && statuses.has('RECEIVED'))     return 'verify' as const
+    if (statuses.size === 1 && statuses.has('IN_WAREHOUSE')) return 'assign' as const
+    return 'mixed' as const
+  }, [selected, deliveries])
 
   const allSelected = selected.size > 0 && selectableIds.every((id) => selected.has(id))
 
@@ -87,36 +104,116 @@ export default function BulkPanel({
     } finally { setBusy(false) }
   }
 
+  async function handleVerify() {
+    if (selected.size === 0) return
+    setBusy(true)
+    setVerifyOutcome(null)
+    try {
+      const r = await verifyMany(Array.from(selected))
+      setVerifyOutcome(r)
+      setSelected(new Set())
+    } finally { setBusy(false) }
+  }
+
+  async function handleDeny() {
+    if (selected.size === 0 || !denyReason.trim()) return
+    setBusy(true)
+    setDenyOutcome(null)
+    try {
+      const r = await denyMany(Array.from(selected), denyReason.trim())
+      setDenyOutcome(r)
+      setSelected(new Set())
+      setDenyReason('')
+      setShowDenyInput(false)
+    } finally { setBusy(false) }
+  }
+
   return (
     <>
       {selected.size > 0 && (
         <div className="sticky top-0 z-10 bg-[var(--color-primary-soft)]/40 border border-[var(--color-border)] rounded-2xl p-4 mb-4 flex flex-wrap items-center gap-3 shadow">
           <p className="text-sm font-semibold text-[var(--color-primary)]">
-            {selected.size} selected
+            {selected.size} {t('bulk_selected')}
           </p>
-          <div className="flex items-center gap-2">
-            <select
-              value={chosenCourier}
-              onChange={(e) => setChosenCourier(e.target.value)}
-              className="border border-[var(--color-border-strong)] rounded-xl px-3 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)]"
-            >
-              <option value="">Pick courier…</option>
-              {couriers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}{c.load !== undefined ? ` — ${c.load} active` : ''}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleManual}
-              disabled={busy || !chosenCourier}
-              className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-            >
-              {busy ? 'Working…' : 'Assign'}
-            </button>
-          </div>
-          <button onClick={() => setSelected(new Set())} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)]">
-            Clear
+
+          {/* RECEIVED selection → verify or deny. */}
+          {selectionMode === 'verify' && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleVerify}
+                disabled={busy}
+                className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+              >
+                {busy ? '…' : `${t('bulk_verify')} (${selected.size})`}
+              </button>
+              {!showDenyInput && (
+                <button
+                  onClick={() => setShowDenyInput(true)}
+                  disabled={busy}
+                  className="border border-red-500/50 text-red-600 dark:text-red-300 hover:bg-red-500/10 disabled:opacity-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                >
+                  {t('bulk_deny')}
+                </button>
+              )}
+              {showDenyInput && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={denyReason}
+                    onChange={(e) => setDenyReason(e.target.value)}
+                    placeholder={t('verify_deny_reason')}
+                    className="border border-[var(--color-border-strong)] rounded-xl px-3 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] w-56"
+                  />
+                  <button
+                    onClick={handleDeny}
+                    disabled={busy || !denyReason.trim()}
+                    className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                  >
+                    {busy ? '…' : t('bulk_deny')}
+                  </button>
+                  <button
+                    onClick={() => { setShowDenyInput(false); setDenyReason('') }}
+                    className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)]"
+                  >
+                    {t('btn_cancel')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* IN_WAREHOUSE selection → assign to courier (cart-style action). */}
+          {selectionMode === 'assign' && (
+            <div className="flex items-center gap-2">
+              <select
+                value={chosenCourier}
+                onChange={(e) => setChosenCourier(e.target.value)}
+                className="border border-[var(--color-border-strong)] rounded-xl px-3 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)]"
+              >
+                <option value="">{t('bulk_pick_courier')}</option>
+                {couriers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}{c.load !== undefined ? ` — ${c.load} ${t('bulk_active')}` : ''}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleManual}
+                disabled={busy || !chosenCourier}
+                className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+              >
+                {busy ? '…' : `${t('bulk_create_order')} (${selected.size})`}
+              </button>
+            </div>
+          )}
+
+          {/* Mixed selection: no single action makes sense. */}
+          {selectionMode === 'mixed' && (
+            <p className="text-xs text-[var(--color-text-muted)]">{t('bulk_mixed_hint')}</p>
+          )}
+
+          <button onClick={() => setSelected(new Set())} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] ml-auto">
+            {t('btn_clear')}
           </button>
         </div>
       )}
@@ -124,13 +221,29 @@ export default function BulkPanel({
       {outcome && (
         <div className="bg-green-500/10 border border-[var(--color-border)] rounded-2xl p-4 mb-4">
           <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-            {outcome.assigned} assigned · {outcome.skipped} skipped · {outcome.failed.length} failed
+            {outcome.assigned} {t('bulk_assigned')} · {outcome.skipped} {t('bulk_skipped')} · {outcome.failed.length} {t('bulk_failed')}
           </p>
           {outcome.failed.length > 0 && (
             <ul className="text-xs text-red-600 dark:text-red-300 mt-2 space-y-0.5">
               {outcome.failed.slice(0, 5).map((f) => <li key={f.id}>· {f.reason}</li>)}
             </ul>
           )}
+        </div>
+      )}
+
+      {verifyOutcome && (
+        <div className="bg-green-500/10 border border-[var(--color-border)] rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+            {verifyOutcome.verified} {t('bulk_verified')} · {verifyOutcome.skipped} {t('bulk_skipped')}
+          </p>
+        </div>
+      )}
+
+      {denyOutcome && (
+        <div className="bg-red-500/10 border border-[var(--color-border)] rounded-2xl p-4 mb-4">
+          <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+            {denyOutcome.denied} {t('bulk_denied')} · {denyOutcome.skipped} {t('bulk_skipped')}
+          </p>
         </div>
       )}
 
