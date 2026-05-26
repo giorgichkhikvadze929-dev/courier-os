@@ -147,7 +147,7 @@ export default async function AdminOrdersPage({
               <Link
                 key={g.fileKey}
                 href={`/admin/orders/file/${g.fileKey}`}
-                className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors p-4"
+                className="block bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:shadow-md transition-all p-5"
               >
                 <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{g.label}</p>
                 <p className="text-xs text-[var(--color-text-muted)] mt-1">{g.companies.size} {t('orders_col_company').toLowerCase()} · {g.parcelCount} {g.parcelCount === 1 ? t('parcel_word') : t('parcel_word_plural')}</p>

@@ -90,50 +90,50 @@ export default async function AdminPage() {
 
   return (
     <Shell currentPath="/admin">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-strong)]">{t('title_admin_dashboard')}</h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">{t('welcome_back')} {session.user?.name}</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-[var(--color-text-strong)] tracking-tight">{t('title_admin_dashboard')}</h1>
+        <p className="text-base text-[var(--color-text-muted)] mt-2">{t('welcome_back')} {session.user?.name}</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
         {stats.map((s) => (
-          <div key={s.label} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
-            <p className="text-xs font-medium text-[var(--color-text-muted)]">{s.label}</p>
-            <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+          <div key={s.label} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6 hover:shadow-md transition-shadow">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">{s.label}</p>
+            <p className={`text-4xl font-bold mt-3 ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Link href="/admin/import"      className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconUpload /> {t('nav_import')}</Link>
-        <Link href="/admin/verify"      className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconPlus /> {t('nav_verify')}</Link>
-        <Link href="/admin/deliveries"  className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconSearch /> {t('btn_search')}</Link>
-        <Link href="/admin/companies"   className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconBuilding /> {t('nav_companies')}</Link>
-        <Link href="/admin/tariffs"     className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconCash /> {t('nav_tariffs')}</Link>
-        <Link href="/admin/audit"       className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-3 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconChart /> {t('nav_audit')}</Link>
+      <div className="mb-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Link href="/admin/import"      className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors shadow-sm hover:shadow-md"><IconUpload /> {t('nav_import')}</Link>
+        <Link href="/admin/deliveries?status=RECEIVED"      className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconPlus /> {t('nav_verify')}</Link>
+        <Link href="/admin/deliveries"  className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconSearch /> {t('btn_search')}</Link>
+        <Link href="/admin/companies"   className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconBuilding /> {t('nav_companies')}</Link>
+        <Link href="/admin/tariffs"     className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconCash /> {t('nav_tariffs')}</Link>
+        <Link href="/admin/audit"       className="bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] text-[var(--color-text)] rounded-xl px-4 py-4 text-sm font-semibold inline-flex items-center gap-2 transition-colors"><IconChart /> {t('nav_audit')}</Link>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">{t('money_flow_title')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
-            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_in_warehouse')}</p>
-            <p className="text-2xl font-bold mt-1 text-cyan-600 dark:text-cyan-400 font-mono">{money(moneyInWarehouse)}</p>
+      <div className="mb-10">
+        <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">{t('money_flow_title')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">{t('money_in_warehouse')}</p>
+            <p className="text-3xl font-bold mt-3 text-cyan-600 dark:text-cyan-400 font-mono">{money(moneyInWarehouse)}</p>
           </div>
-          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
-            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_in_transit')}</p>
-            <p className="text-2xl font-bold mt-1 text-orange-600 dark:text-orange-400 font-mono">{money(moneyInTransit)}</p>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">{t('money_in_transit')}</p>
+            <p className="text-3xl font-bold mt-3 text-orange-600 dark:text-orange-400 font-mono">{money(moneyInTransit)}</p>
           </div>
-          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] px-5 py-4">
-            <p className="text-xs font-medium text-[var(--color-text-muted)]">{t('money_delivered_today')}</p>
-            <p className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400 font-mono">{money(moneyDeliveredToday)}</p>
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">{t('money_delivered_today')}</p>
+            <p className="text-3xl font-bold mt-3 text-green-600 dark:text-green-400 font-mono">{money(moneyDeliveredToday)}</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">{t('workload_title')}</h2>
-        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5">
+      <div className="mb-10">
+        <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">{t('workload_title')}</h2>
+        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-6">
           {couriers.length === 0 ? (
             <p className="text-sm text-[var(--color-text-muted)]">{t('workload_no_couriers')}</p>
           ) : (
@@ -158,10 +158,10 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wide">{t('recent_deliveries')}</h2>
-          <Link href="/admin/deliveries" className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">{t('btn_view_all')} →</Link>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{t('recent_deliveries')}</h2>
+          <Link href="/admin/deliveries" className="text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">{t('btn_view_all')} →</Link>
         </div>
 
         {recentDeliveries.length === 0 ? (

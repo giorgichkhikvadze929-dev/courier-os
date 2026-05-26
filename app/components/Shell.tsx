@@ -253,21 +253,23 @@ export default async function Shell({
           </div>
         </div>
 
-        {/* Page content */}
-        <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Page content — generous padding so cards have room to breathe.
+            The mockup uses a lot of whitespace around its card grid; we
+            match that here so every page inherits the spacious feel. */}
+        <main className="px-4 sm:px-6 lg:px-10 py-5 sm:py-8 lg:py-10 max-w-[1800px]">
           {breadcrumb && (
             <Link
               href={breadcrumb.href}
-              className="inline-flex items-center text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-3"
+              className="inline-flex items-center text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors mb-4"
             >
               {breadcrumb.label}
             </Link>
           )}
           {(title || actions) && (
-            <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
+            <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
               <div>
                 {title && <h1 className="text-2xl lg:text-3xl font-bold text-[var(--color-text-strong)] tracking-tight">{title}</h1>}
-                {subtitle && <p className="text-sm text-[var(--color-text-muted)] mt-1">{subtitle}</p>}
+                {subtitle && <p className="text-base text-[var(--color-text-muted)] mt-2">{subtitle}</p>}
               </div>
               {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
             </div>

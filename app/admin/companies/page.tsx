@@ -72,7 +72,7 @@ export default async function CompaniesPage() {
                 ? t('upload_status_pending')
                 : t('upload_status_disabled')
             return (
-              <div key={c.id} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-4">
+              <div key={c.id} className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-[var(--color-text-strong)] truncate">{c.name}</p>
