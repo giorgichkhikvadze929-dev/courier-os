@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import BulkPanel from './BulkPanel'
 import SortPicker from './SortPicker'
-import FilterPanel from '@/app/components/FilterPanel'
 import Pagination from '@/app/components/Pagination'
 import ActiveFilterChips, { type Chip } from '@/app/components/ActiveFilterChips'
 import { IconUpload } from '@/app/components/Icons'
@@ -216,6 +215,76 @@ export default async function AdminDeliveriesPage({
         </Link>
       </div>
 
+      {/* Quick status chips — one click swaps the status filter. Shown in
+          the Active tab; the Completed tab gets its own subset below. */}
+      {view === 'active' && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {([
+            { key: '',             label: t('label_all') },
+            { key: 'RECEIVED',     label: tStatus('RECEIVED', lang) },
+            { key: 'IN_WAREHOUSE', label: tStatus('IN_WAREHOUSE', lang) },
+            { key: 'ASSIGNED',     label: tStatus('ASSIGNED', lang) },
+            { key: 'IN_TRANSIT',   label: tStatus('IN_TRANSIT', lang) },
+          ] as const).map((c) => {
+            const params = new URLSearchParams()
+            for (const [k, v] of Object.entries(sp)) {
+              if (v != null && v !== '' && k !== 'status' && k !== 'page') params.set(k, String(v))
+            }
+            if (c.key) params.set('status', c.key)
+            const qs = params.toString()
+            const href = `/admin/deliveries${qs ? `?${qs}` : ''}`
+            const isActive = (status ?? '') === c.key
+            return (
+              <Link
+                key={c.key || 'all'}
+                href={href}
+                className={`text-xs font-semibold rounded-full px-3 py-1.5 border transition-colors ${
+                  isActive
+                    ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                    : 'bg-[var(--color-card)] text-[var(--color-text)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]'
+                }`}
+              >
+                {c.label}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+      {view === 'completed' && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {([
+            { key: '',         label: t('label_all') },
+            { key: 'DELIVERED',label: tStatus('DELIVERED', lang) },
+            { key: 'FAILED',   label: tStatus('FAILED', lang) },
+            { key: 'REFUSED',  label: tStatus('REFUSED', lang) },
+            { key: 'RETURNED', label: tStatus('RETURNED', lang) },
+          ] as const).map((c) => {
+            const params = new URLSearchParams()
+            for (const [k, v] of Object.entries(sp)) {
+              if (v != null && v !== '' && k !== 'status' && k !== 'page') params.set(k, String(v))
+            }
+            params.set('view', 'completed')
+            if (c.key) params.set('status', c.key)
+            const qs = params.toString()
+            const href = `/admin/deliveries?${qs}`
+            const isActive = (status ?? '') === c.key
+            return (
+              <Link
+                key={c.key || 'all'}
+                href={href}
+                className={`text-xs font-semibold rounded-full px-3 py-1.5 border transition-colors ${
+                  isActive
+                    ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                    : 'bg-[var(--color-card)] text-[var(--color-text)] border-[var(--color-border-strong)] hover:border-[var(--color-primary)]'
+                }`}
+              >
+                {c.label}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
       <p className="text-xs text-[var(--color-text-faint)] mb-4">
         {view === 'active' ? t('view_active_subtitle') : t('view_completed_subtitle')}
       </p>
@@ -236,47 +305,49 @@ export default async function AdminDeliveriesPage({
         }
       />
 
-      <FilterPanel
-        activeCount={activeFilterCount}
-        defaultOpen={!!q || !!courier}
-        labels={{ filters: t('filters_title'), show: t('filters_show'), hide: t('filters_hide'), active: t('filters_active') }}
-      >
-        <form className="flex flex-wrap gap-2 items-end">
-          <input type="hidden" name="view" value={view} />
-          <input type="hidden" name="page" value="1" />
-          <input type="hidden" name="pageSize" value={String(pageSize)} />
-          {/* Preserve column-header filters across the search submit */}
-          {status      && <input type="hidden" name="status"      value={status} />}
-          {priority    && <input type="hidden" name="priority"    value={priority} />}
-          {zone        && <input type="hidden" name="zone"        value={zone} />}
-          {packageType && <input type="hidden" name="packageType" value={packageType} />}
+      {/* Always-visible filter row — previously hidden behind a "Show
+          filters" toggle that no one opened. Search + courier + zone are
+          the three filters admins use most when triaging a backlog. */}
+      <form className="flex flex-wrap gap-2 items-end mb-3 p-3 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)]">
+        <input type="hidden" name="view" value={view} />
+        <input type="hidden" name="page" value="1" />
+        <input type="hidden" name="pageSize" value={String(pageSize)} />
+        {status      && <input type="hidden" name="status"      value={status} />}
+        {priority    && <input type="hidden" name="priority"    value={priority} />}
+        {packageType && <input type="hidden" name="packageType" value={packageType} />}
 
-          <div>
-            <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('btn_search')}</label>
-            <input
-              name="q"
-              defaultValue={q ?? ''}
-              placeholder={t('label_search_placeholder')}
-              className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] w-56"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('label_courier')}</label>
-            <select name="courier" defaultValue={courier ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-              <option value="">{t('label_all')}</option>
-              {couriers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors h-10">
-            {t('btn_filter')}
-          </button>
-          {activeFilterCount > 0 && (
-            <Link href={`/admin/deliveries${view === 'completed' ? '?view=completed' : ''}`} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2 inline-flex items-center h-10">
-              {t('btn_clear')}
-            </Link>
-          )}
-        </form>
-      </FilterPanel>
+        <div>
+          <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('btn_search')}</label>
+          <input
+            name="q"
+            defaultValue={q ?? ''}
+            placeholder={t('label_search_placeholder')}
+            className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] w-56"
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('label_courier')}</label>
+          <select name="courier" defaultValue={courier ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-10">
+            <option value="">{t('label_all')}</option>
+            {couriers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[10px] uppercase tracking-wider font-semibold text-[var(--color-text-faint)] mb-1">{t('label_zone')}</label>
+          <select name="zone" defaultValue={zone ?? ''} className="border border-[var(--color-border-strong)] rounded-xl px-4 py-2 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] h-10">
+            <option value="">{t('label_all')}</option>
+            {ZONES.map((z) => <option key={z} value={z}>{tZone(z, lang)}</option>)}
+          </select>
+        </div>
+        <button type="submit" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors h-10">
+          {t('btn_filter')}
+        </button>
+        {activeFilterCount > 0 && (
+          <Link href={`/admin/deliveries${view === 'completed' ? '?view=completed' : ''}`} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] border border-[var(--color-border-strong)] rounded-xl px-4 py-2 inline-flex items-center h-10">
+            {t('btn_clear')}
+          </Link>
+        )}
+      </form>
 
       <div className="flex items-center justify-end gap-3 mb-3">
         <SortPicker
