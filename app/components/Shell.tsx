@@ -8,6 +8,7 @@ import LangPicker from './LangPicker'
 import SidebarToggle from './SidebarToggle'
 import MobileDrawer from './MobileDrawer'
 import ImpersonationBanner from './ImpersonationBanner'
+import CommandPalette from './CommandPalette/CommandPalette'
 import { getT } from '@/lib/i18n-server'
 import { type DictKey } from '@/lib/i18n'
 
@@ -104,6 +105,10 @@ export default async function Shell({
 
   return (
     <div className="min-h-screen bg-[var(--color-app)] text-[var(--color-text)]">
+      {/* Global ⌘K / Ctrl+K command palette. Listens for the shortcut on
+          every admin page; pops a centered overlay that searches across
+          deliveries, orders, companies, couriers. */}
+      {role === 'ADMIN' && <CommandPalette lang={lang} />}
       {impersonatedBy && (
         <ImpersonationBanner
           asUserName={session.user.name ?? '?'}
