@@ -81,6 +81,15 @@ export default function BulkPanel({
     return 'mixed' as const
   }, [selected, deliveries])
 
+  // Selected items (resolved against the current page's rows). Used for the
+  // cart summary line + expandable item list.
+  const selectedRows = useMemo(
+    () => deliveries.filter((d) => selected.has(d.id)),
+    [deliveries, selected],
+  )
+  const totalCod = selectedRows.reduce((s, d) => s + (d.codAmount ?? 0), 0)
+  const [cartOpen, setCartOpen] = useState(false)
+
   const allSelected = selected.size > 0 && selectableIds.every((id) => selected.has(id))
 
   function toggle(id: string) {
@@ -131,10 +140,21 @@ export default function BulkPanel({
   return (
     <>
       {selected.size > 0 && (
-        <div className="sticky top-0 z-10 bg-[var(--color-primary-soft)]/40 border border-[var(--color-border)] rounded-2xl p-4 mb-4 flex flex-wrap items-center gap-3 shadow">
-          <p className="text-sm font-semibold text-[var(--color-primary)]">
-            {selected.size} {t('bulk_selected')}
-          </p>
+        <div className="sticky top-0 z-10 bg-[var(--color-primary-soft)]/40 border border-[var(--color-border)] rounded-2xl mb-4 shadow">
+          {/* Cart header row */}
+          <div className="p-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setCartOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
+            title={cartOpen ? t('bulk_hide_items') : t('bulk_show_items')}
+          >
+            <span>{selected.size} {t('bulk_selected')}</span>
+            {totalCod > 0 && (
+              <span className="text-[var(--color-text-muted)] font-normal">· COD {money(totalCod)}</span>
+            )}
+            <svg className={`w-4 h-4 transition-transform ${cartOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
 
           {/* RECEIVED selection → verify or deny. */}
           {selectionMode === 'verify' && (
@@ -215,6 +235,33 @@ export default function BulkPanel({
           <button onClick={() => setSelected(new Set())} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-strong)] ml-auto">
             {t('btn_clear')}
           </button>
+          </div>
+
+          {/* Expandable cart contents — shows the selected parcels with
+              tracking + customer + COD so the admin can sanity-check the
+              "order" they're about to send out before clicking Create. */}
+          {cartOpen && selectedRows.length > 0 && (
+            <div className="border-t border-[var(--color-border)] max-h-64 overflow-y-auto bg-[var(--color-card)] rounded-b-2xl">
+              <ul className="divide-y divide-[var(--color-border)]">
+                {selectedRows.map((d) => (
+                  <li key={d.id} className="px-4 py-2 flex items-center gap-3 text-xs">
+                    <span className="font-mono text-[var(--color-primary)] font-semibold flex-shrink-0">{d.trackingNumber}</span>
+                    <span className="text-[var(--color-text-strong)] truncate flex-1">{d.customerName}</span>
+                    {d.zone && <span className="text-[var(--color-text-muted)] flex-shrink-0">{tZone(d.zone, lang)}</span>}
+                    {d.codAmount != null && d.codAmount > 0 && (
+                      <span className="font-mono text-yellow-700 dark:text-yellow-300 flex-shrink-0">{money(d.codAmount)}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => toggle(d.id)}
+                      className="text-[var(--color-text-muted)] hover:text-red-600 dark:hover:text-red-300"
+                      title={t('btn_remove')}
+                    >×</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

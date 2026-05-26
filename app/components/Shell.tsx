@@ -32,10 +32,11 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   ADMIN: [
     { href: '/admin',             labelKey: 'nav_dashboard',  icon: ICONS.dashboard },
     { href: '/admin/deliveries',  labelKey: 'nav_deliveries', icon: ICONS.truck },
-    { href: '/admin/assign',      labelKey: 'nav_assign',     icon: ICONS.route },
-    // Verify + Denied are filtered views of /admin/deliveries now —
-    // the bulk Verify/Deny + status quick-chips handle that workflow
-    // inline so they no longer need their own sidebar entries.
+    // Verify, Denied, and Assign were all just filtered views of
+    // /admin/deliveries. They've been folded into the Deliveries page:
+    //   - status chips switch between RECEIVED / IN_WAREHOUSE / ASSIGNED / IN_TRANSIT
+    //   - BulkPanel exposes Verify+Deny on RECEIVED selection
+    //   - BulkPanel exposes Pick-courier+Create-order on IN_WAREHOUSE selection
     // /admin/import lives under Settings — admins rarely use it day-to-day.
     { href: '/admin/companies',   labelKey: 'nav_companies',  icon: ICONS.building },
     { href: '/admin/orders',      labelKey: 'nav_orders',     icon: ICONS.cash },
