@@ -27,7 +27,7 @@ export default async function ReviewStep({
   const sp = await searchParams
   const ids     = (sp.ids ?? '').split(',').filter(Boolean)
   const courier = sp.courier ?? ''
-  if (ids.length === 0) redirect('/admin/deliveries')
+  if (ids.length === 0) redirect('/admin/orders/new')
   if (!courier) redirect(`/admin/orders/new/courier?ids=${encodeURIComponent(ids.join(','))}`)
 
   const [parcels, courierRow, activeLoad] = await Promise.all([
@@ -46,7 +46,7 @@ export default async function ReviewStep({
   const tail = `?ids=${encodeURIComponent(ids.join(','))}&courier=${encodeURIComponent(courier)}`
 
   return (
-    <Shell currentPath="/admin/deliveries" title={t('wizard_title_review')} subtitle={t('wizard_subtitle_review')}>
+    <Shell currentPath="/admin/orders/new" title={t('wizard_title_review')} subtitle={t('wizard_subtitle_review')}>
       <WizardSteps current="review" ids={ids} courier={courier} lang={lang} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">

@@ -22,7 +22,7 @@ export default async function CourierStep({
   const { t, lang } = await getT()
   const sp = await searchParams
   const ids = (sp.ids ?? '').split(',').filter(Boolean)
-  if (ids.length === 0) redirect('/admin/deliveries')
+  if (ids.length === 0) redirect('/admin/orders/new')
 
   const [couriers, workload] = await Promise.all([
     prisma.user.findMany({
@@ -43,7 +43,7 @@ export default async function CourierStep({
   const idsParam = `ids=${encodeURIComponent(ids.join(','))}`
 
   return (
-    <Shell currentPath="/admin/deliveries" title={t('wizard_title_courier')} subtitle={t('wizard_subtitle_courier')}>
+    <Shell currentPath="/admin/orders/new" title={t('wizard_title_courier')} subtitle={t('wizard_subtitle_courier')}>
       <WizardSteps current="courier" ids={ids} courier={sp.courier ?? null} lang={lang} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

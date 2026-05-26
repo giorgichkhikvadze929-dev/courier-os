@@ -219,7 +219,7 @@ const DICT = {
   title_courier_dashboard:{ ge: 'ჩემი შეკვეთები',             en: 'My Orders' },
   title_history:         { ge: 'მიწოდებების ისტორია',        en: 'Delivery History' },
   title_history_subtitle:{ ge: 'ჩემი ყველა დასრულებული და პრობლემური ამანათი', en: 'All my completed and problem-status deliveries' },
-  title_deliveries:      { ge: 'შეკვეთები',                  en: 'Orders' },
+  title_deliveries:      { ge: 'მიწოდებები',                  en: 'Deliveries' },
   title_my_parcels:      { ge: 'ჩემი შეკვეთები',              en: 'My Orders' },
   title_companies:       { ge: 'კომპანიები',                en: 'Companies' },
   title_tariffs:         { ge: 'ტარიფები',                  en: 'Tariffs' },

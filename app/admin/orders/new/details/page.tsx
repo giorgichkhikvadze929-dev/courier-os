@@ -26,7 +26,7 @@ export default async function OrderDetailsStep({
   const { t, lang } = await getT()
   const sp = await searchParams
   const ids = (sp.ids ?? '').split(',').filter(Boolean)
-  if (ids.length === 0) redirect('/admin/deliveries')
+  if (ids.length === 0) redirect('/admin/orders/new')
 
   const parcels = await prisma.delivery.findMany({
     where:  { id: { in: ids } },
@@ -40,7 +40,7 @@ export default async function OrderDetailsStep({
   const tail = `?ids=${encodeURIComponent(ids.join(','))}${sp.courier ? `&courier=${encodeURIComponent(sp.courier)}` : ''}`
 
   return (
-    <Shell currentPath="/admin/deliveries" title={t('wizard_title_details')} subtitle={t('wizard_subtitle_details')}>
+    <Shell currentPath="/admin/orders/new" title={t('wizard_title_details')} subtitle={t('wizard_subtitle_details')}>
       <WizardSteps current="details" ids={ids} courier={sp.courier ?? null} lang={lang} />
 
       <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden mb-6">
@@ -74,7 +74,7 @@ export default async function OrderDetailsStep({
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <Link href="/admin/deliveries?status=IN_WAREHOUSE" className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
+        <Link href="/admin/orders/new" className="inline-flex items-center gap-2 border border-[var(--color-border-strong)] text-[var(--color-text)] hover:bg-[var(--color-card-hover)] text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
           ← {t('wizard_back')}
         </Link>
         <Link href={`/admin/orders/new/courier${tail}`} className="inline-flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-sm font-semibold px-5 py-3 rounded-xl transition-colors">
