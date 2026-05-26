@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import Shell from '@/app/components/Shell'
 import BulkPanel from './BulkPanel'
 import SortPicker from './SortPicker'
+import WizardSteps from './WizardSteps'
 import Pagination from '@/app/components/Pagination'
 import ActiveFilterChips, { type Chip } from '@/app/components/ActiveFilterChips'
 import { IconUpload } from '@/app/components/Icons'
@@ -181,35 +182,7 @@ export default async function AdminDeliveriesPage({
         </Link>
       }
     >
-      {/* ── 4-step process ribbon — mirrors the mockup's wizard header.
-          The steps are visual context for the parcel-flow (Browse →
-          Select → Assign → Done), not a real wizard, so all of them
-          stay clickable as plain links rather than locked behind state. */}
-      <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 sm:p-6 mb-6 hidden lg:block">
-        <div className="flex items-center gap-4">
-          {([
-            { n: 1, label: t('step_browse'),  sub: t('step_browse_sub') },
-            { n: 2, label: t('step_select'),  sub: t('step_select_sub') },
-            { n: 3, label: t('step_assign'),  sub: t('step_assign_sub') },
-            { n: 4, label: t('step_done'),    sub: t('step_done_sub') },
-          ] as const).map((s, idx, arr) => (
-            <div key={s.n} className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 bg-[var(--color-primary)] text-white shadow shadow-blue-900/30">
-                  {s.n}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{s.label}</p>
-                  <p className="text-xs text-[var(--color-text-muted)] truncate">{s.sub}</p>
-                </div>
-              </div>
-              {idx < arr.length - 1 && (
-                <div className="flex-1 h-px bg-[var(--color-border)] min-w-[1rem]" />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <WizardSteps current="browse" lang={lang} />
 
       {/* View tabs: Active vs Completed */}
       <div className="flex items-center gap-1 border-b border-[var(--color-border)] mb-4 overflow-x-auto">

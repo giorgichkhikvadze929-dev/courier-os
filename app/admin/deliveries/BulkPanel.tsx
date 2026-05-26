@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { bulkAssignToCourier, type BulkResult } from './actions'
 import { verifyMany, denyMany } from '@/app/admin/verify/actions'
 import { StatusBadge, PriorityBadge } from '@/app/components/StatusBadge'
@@ -53,6 +54,7 @@ export default function BulkPanel({
   packageFilter?: ColumnFilter
 }) {
   const t = (k: DictKey) => translate(k, lang)
+  const router = useRouter()
   const sortState = { by: sortBy, dir: sortDir }
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
@@ -539,25 +541,17 @@ export default function BulkPanel({
             <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-[var(--color-border)] p-5 flex-shrink-0">
               {selectionMode === 'assign' && (
                 <>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-faint)] mb-3">{t('bulk_assign_courier_title')}</p>
-                  <select
-                    value={chosenCourier}
-                    onChange={(e) => setChosenCourier(e.target.value)}
-                    className="w-full border border-[var(--color-border-strong)] rounded-xl px-3 py-3 text-sm bg-[var(--color-card)] text-[var(--color-text-strong)] mb-3"
-                  >
-                    <option value="">{t('bulk_pick_courier')}</option>
-                    {couriers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}{c.load !== undefined ? ` — ${c.load} ${t('bulk_active')}` : ''}
-                      </option>
-                    ))}
-                  </select>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-faint)] mb-3">{t('bulk_assign_next_title')}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-3 leading-relaxed">{t('bulk_assign_next_hint')}</p>
                   <button
-                    onClick={handleManual}
-                    disabled={busy || !chosenCourier}
-                    className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-xl transition-colors"
+                    onClick={() => {
+                      const ids = Array.from(selected).join(',')
+                      router.push(`/admin/deliveries/details?ids=${encodeURIComponent(ids)}`)
+                    }}
+                    disabled={busy}
+                    className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white text-sm font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
-                    {busy ? '…' : `${t('bulk_create_order')} (${selected.size})`}
+                    {t('bulk_next_details')} <span aria-hidden>→</span>
                   </button>
                 </>
               )}
