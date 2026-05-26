@@ -103,19 +103,20 @@ export default async function Shell({
           lang={lang}
         />
       )}
-      {/* Sidebar */}
-      <aside data-sidebar className="hidden lg:flex flex-col fixed inset-y-0 left-0 w-60 bg-[var(--color-app-elev)] border-r border-[var(--color-border)] z-30 overflow-hidden">
-        <div className="px-3 h-16 flex items-center border-b border-[var(--color-border)]">
+      {/* Sidebar — dark navy to match the mockup. Items render light on
+          dark so contrast stays strong across light/dark page themes. */}
+      <aside data-sidebar className="hidden lg:flex flex-col fixed inset-y-0 left-0 w-60 bg-slate-900 dark:bg-slate-950 text-slate-200 border-r border-slate-800 z-30 overflow-hidden">
+        <div className="px-3 h-16 flex items-center border-b border-slate-800">
           <SidebarToggle ariaLabel="Toggle sidebar">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-900/40">
               {/* Brand logo — delivery truck. We're a moving company. */}
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
             </div>
-            <div data-sidebar-label className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-bold text-[var(--color-text-strong)] leading-tight">CourierOS</p>
-              <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-faint)]">{roleLabel}</p>
+            <div data-sidebar-label className="flex-1 min-w-0 text-left ml-2">
+              <p className="text-sm font-bold text-white leading-tight">CourierOS</p>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">{roleLabel}</p>
             </div>
           </SidebarToggle>
         </div>
@@ -135,10 +136,10 @@ export default async function Shell({
                   href={item.href}
                   data-sidebar-item
                   title={tr(item.labelKey)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-[var(--color-primary)] text-white shadow-sm shadow-blue-900/30'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-card)]'
+                      ? 'bg-[var(--color-primary)] text-white shadow-md shadow-blue-900/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
                   }`}
                 >
                   <span className="flex-shrink-0">{item.icon}</span>
@@ -149,18 +150,18 @@ export default async function Shell({
           })()}
         </nav>
 
-        <div className="border-t border-[var(--color-border)] px-3 py-3">
+        <div className="border-t border-slate-800 px-3 py-3">
           <div data-sidebar-user className="flex items-center gap-3 px-2 py-2" title={session.user.name ?? undefined}>
-            <div className="w-8 h-8 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-text-strong)] text-xs font-bold flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 shadow shadow-blue-900/30">
               {initials || '?'}
             </div>
             <div data-sidebar-user-meta className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[var(--color-text-strong)] truncate">{session.user.name}</p>
-              <p className="text-xs text-[var(--color-text-faint)] truncate">{session.user.email}</p>
+              <p className="text-sm font-semibold text-white truncate">{session.user.name}</p>
+              <p className="text-xs text-slate-400 truncate">{role === 'ADMIN' ? roleLabel : session.user.email}</p>
             </div>
           </div>
           <form action={async () => { 'use server'; await signOut({ redirectTo: '/login' }) }} data-sidebar-signout>
-            <button className="mt-1 w-full text-left text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] px-2 py-1.5 rounded-md hover:bg-[var(--color-card)] transition-colors">
+            <button className="mt-1 w-full text-left text-xs text-slate-400 hover:text-white px-2 py-1.5 rounded-md hover:bg-slate-800 transition-colors">
               {tr('btn_signout')}
             </button>
           </form>
